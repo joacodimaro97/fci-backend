@@ -11,7 +11,7 @@ async function swaggerPlugin(fastify: FastifyInstance): Promise<void> {
         description: 'API REST para seguimiento y simulación de inversiones personales',
         version: '1.0.0',
       },
-      servers: [{ url: 'http://localhost:3000', description: 'Desarrollo' }],
+      servers: [{ url: '/', description: 'API' }],
       components: {
         securitySchemes: {
           bearerAuth: {

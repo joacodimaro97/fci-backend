@@ -71,28 +71,65 @@ El servidor inicia en `http://localhost:3000`.
 
 Documentación Swagger: `http://localhost:3000/docs`
 
-## Producción (PostgreSQL)
+## Base de datos
 
-1. Cambiar `DATABASE_URL` en `.env`:
+El proyecto usa **PostgreSQL** (local y producción).
 
 ```env
-DATABASE_URL="postgresql://user:password@localhost:5432/fci_backend?schema=public"
+DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/DATABASE?schema=public"
 ```
 
-2. Cambiar el provider en `prisma/schema.prisma`:
-
-```prisma
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-```
-
-3. Ejecutar migraciones:
+Migraciones:
 
 ```bash
-npm run db:migrate:deploy
+npm run db:migrate        # desarrollo
+npm run db:migrate:deploy # producción / Render
 ```
+
+## Deploy en Render (gratis)
+
+### 1. Postgres
+Ya creaste la base en Render. Copiá el **Internal Database URL** (si el Web Service está en la misma cuenta/región) o el **External Database URL**.
+
+### 2. Web Service
+- New → **Web Service** → conectá este repo
+- Runtime: **Node**
+- Branch: `main` (o la que uses)
+- **Build Command:**
+  ```bash
+  npm install && npx prisma generate && npm run build
+  ```
+- **Start Command:**
+  ```bash
+  npx prisma migrate deploy && node dist/server.js
+  ```
+- Instance: **Free**
+
+### 3. Environment variables
+En el Web Service → Environment:
+
+| Key | Value |
+|-----|--------|
+| `NODE_ENV` | `production` |
+| `HOST` | `0.0.0.0` |
+| `DATABASE_URL` | Internal/External URL del Postgres de Render |
+| `JWT_SECRET` | string largo aleatorio |
+| `JWT_EXPIRES_IN` | `7d` |
+| `LOG_LEVEL` | `info` |
+
+`PORT` lo asigna Render solo: no hace falta setearlo.
+
+### 4. Después del primer deploy
+- Health: `https://TU-SERVICIO.onrender.com/health`
+- Docs: `https://TU-SERVICIO.onrender.com/docs`
+- Seed opcional (Shell de Render, una vez):
+  ```bash
+  npm run db:seed
+  ```
+
+### Notas free tier
+- El servicio se duerme sin tráfico; la 1ª request puede tardar.
+- El frontend debe apuntar a la URL de Render.
 
 ## Scripts
 
@@ -101,6 +138,7 @@ npm run db:migrate:deploy
 | `npm run dev` | Servidor en modo desarrollo |
 | `npm run build` | Compilar con tsup |
 | `npm start` | Ejecutar build de producción |
+| `npm run start:prod` | Migrar + arrancar (Render) |
 | `npm test` | Ejecutar tests |
 | `npm run db:migrate` | Crear/aplicar migraciones |
 | `npm run db:seed` | Cargar datos de prueba |
