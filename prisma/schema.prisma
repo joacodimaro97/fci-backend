@@ -1,0 +1,176 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum MovementType {
+  DEPOSIT
+  WITHDRAW
+}
+
+enum InvestmentType {
+  FCI
+  MONEY_MARKET
+  STOCK
+  ETF
+  CRYPTO
+  FIXED_TERM
+  BOND
+  OTHER
+}
+
+enum SimulationType {
+  FIXED
+  REAL_HISTORY
+  OPTIMISTIC
+  PESSIMISTIC
+  CUSTOM
+}
+
+enum CashTransactionType {
+  INCOME
+  EXPENSE
+}
+
+model User {
+  id           String        @id @default(cuid())
+  name         String
+  email        String        @unique
+  password     String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  accounts     Account[]
+  cashAccounts CashAccount[]
+  categories   Category[]
+}
+
+model Account {
+  id             String             @id @default(cuid())
+  userId         String
+  name           String
+  description    String?
+  currency       String             @default("ARS")
+  investmentType InvestmentType
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  user           User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movements      Movement[]
+  performances   DailyPerformance[]
+  simulations    Simulation[]
+
+  @@index([userId])
+}
+
+model Movement {
+  id          String       @id @default(cuid())
+  accountId   String
+  type        MovementType
+  amount      Float
+  date        DateTime
+  description String?
+  createdAt   DateTime     @default(now())
+  account     Account      @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([accountId])
+  @@index([date])
+}
+
+model DailyPerformance {
+  id                 String   @id @default(cuid())
+  accountId          String
+  date               DateTime
+  dailyReturnPercent Float
+  dailyProfit        Float
+  shareValue         Float
+  notes              String?
+  createdAt          DateTime @default(now())
+  account            Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@unique([accountId, date])
+  @@index([accountId])
+  @@index([date])
+}
+
+model Simulation {
+  id                  String             @id @default(cuid())
+  accountId           String
+  name                String
+  simulationType      SimulationType
+  capitalInitial      Float
+  monthlyContribution Float              @default(0)
+  annualRate          Float?
+  years               Int
+  createdAt           DateTime           @default(now())
+  account             Account            @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  results             SimulationResult[]
+
+  @@index([accountId])
+}
+
+model SimulationResult {
+  id           String     @id @default(cuid())
+  simulationId String
+  day          Int
+  capital      Float
+  profit       Float
+  dailyRate    Float
+  simulation   Simulation @relation(fields: [simulationId], references: [id], onDelete: Cascade)
+
+  @@index([simulationId])
+}
+
+model CashAccount {
+  id             String        @id @default(cuid())
+  userId         String
+  name           String
+  description    String?
+  currency       String        @default("ARS")
+  openingBalance Float         @default(0)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions   Transaction[]
+
+  @@index([userId])
+}
+
+model Category {
+  id           String              @id @default(cuid())
+  userId       String
+  parentId     String?
+  name         String
+  type         CashTransactionType
+  color        String?
+  icon         String?
+  createdAt    DateTime            @default(now())
+  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent       Category?           @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children     Category[]          @relation("CategoryHierarchy")
+  transactions Transaction[]
+
+  @@index([userId])
+  @@index([parentId])
+  @@index([type])
+}
+
+model Transaction {
+  id            String              @id @default(cuid())
+  cashAccountId String
+  categoryId    String
+  type          CashTransactionType
+  amount        Float
+  date          DateTime
+  description   String?
+  createdAt     DateTime            @default(now())
+  cashAccount   CashAccount         @relation(fields: [cashAccountId], references: [id], onDelete: Cascade)
+  category      Category            @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  @@index([cashAccountId])
+  @@index([categoryId])
+  @@index([date])
+  @@index([type])
+}

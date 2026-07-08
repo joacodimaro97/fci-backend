@@ -1,0 +1,18 @@
+import { prisma } from '../../config/database.js';
+import { PrismaAccountRepository } from './PrismaAccountRepository.js';
+import { PrismaCashAccountRepository } from './PrismaCashAccountRepository.js';
+import { PrismaCategoryRepository } from './PrismaCategoryRepository.js';
+import { PrismaMovementRepository } from './PrismaMovementRepository.js';
+import { PrismaPerformanceRepository } from './PrismaPerformanceRepository.js';
+import { PrismaSimulationRepository } from './PrismaSimulationRepository.js';
+import { PrismaTransactionRepository } from './PrismaTransactionRepository.js';
+import { PrismaUserRepository } from './PrismaUserRepository.js';
+
+export const userRepository = new PrismaUserRepository(prisma);
+export const accountRepository = new PrismaAccountRepository(prisma);
+export const movementRepository = new PrismaMovementRepository(prisma);
+export const performanceRepository = new PrismaPerformanceRepository(prisma);
+export const simulationRepository = new PrismaSimulationRepository(prisma);
+export const cashAccountRepository = new PrismaCashAccountRepository(prisma);
+export const categoryRepository = new PrismaCategoryRepository(prisma);
+export const transactionRepository = new PrismaTransactionRepository(prisma);
