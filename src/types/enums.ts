@@ -3,4 +3,5 @@ export {
   InvestmentType,
   SimulationType,
   CashTransactionType,
+  FundingType,
 } from '@prisma/client';

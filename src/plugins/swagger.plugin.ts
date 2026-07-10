@@ -32,6 +32,8 @@ async function swaggerPlugin(fastify: FastifyInstance): Promise<void> {
         { name: 'Cash Categories', description: 'Categorías de ingresos y gastos' },
         { name: 'Cash Transactions', description: 'Ingresos y gastos' },
         { name: 'Cash Summary', description: 'Resumen de flujo de caja' },
+        { name: 'Cash Transfers', description: 'Transferencias entre cuentas de efectivo' },
+        { name: 'Account Fundings', description: 'Movimientos entre efectivo y cuentas de inversión' },
       ],
     },
   });

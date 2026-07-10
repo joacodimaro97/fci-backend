@@ -34,6 +34,8 @@ export class TransactionService {
       type: query.type,
       startDate: query.startDate ? startOfDay(parseDate(query.startDate)) : undefined,
       endDate: query.endDate ? endOfDay(parseDate(query.endDate)) : undefined,
+      excludeTransfers: query.excludeTransfers,
+      excludeFundings: query.excludeFundings,
     });
   }
 
@@ -65,6 +67,18 @@ export class TransactionService {
       throw new NotFoundError('Transacción');
     }
 
+    if (transaction.transferId) {
+      throw new ValidationError(
+        'Esta transacción pertenece a una transferencia. Eliminá la transferencia en /cash/transfers',
+      );
+    }
+
+    if (transaction.fundingId) {
+      throw new ValidationError(
+        'Esta transacción pertenece a un movimiento efectivo↔inversión. Eliminá el registro en /fundings',
+      );
+    }
+
     const nextCashAccountId = input.cashAccountId ?? transaction.cashAccountId;
     const nextCategoryId = input.categoryId ?? transaction.categoryId;
     const nextType = input.type ?? transaction.type;
@@ -94,6 +108,19 @@ export class TransactionService {
     if (!transaction) {
       throw new NotFoundError('Transacción');
     }
+
+    if (transaction.transferId) {
+      throw new ValidationError(
+        'Esta transacción pertenece a una transferencia. Eliminá la transferencia en /cash/transfers',
+      );
+    }
+
+    if (transaction.fundingId) {
+      throw new ValidationError(
+        'Esta transacción pertenece a un movimiento efectivo↔inversión. Eliminá el registro en /fundings',
+      );
+    }
+
     await this.transactionRepository.delete(transactionId);
   }
 

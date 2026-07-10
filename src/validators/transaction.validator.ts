@@ -34,6 +34,14 @@ export const transactionQuerySchema = z.object({
   type: z.nativeEnum(CashTransactionType).optional(),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
+  excludeTransfers: z
+    .enum(['true', 'false'])
+    .optional()
+    .transform((v) => v === 'true'),
+  excludeFundings: z
+    .enum(['true', 'false'])
+    .optional()
+    .transform((v) => v === 'true'),
 });
 
 export type CreateTransactionInput = z.infer<typeof createTransactionSchema>;

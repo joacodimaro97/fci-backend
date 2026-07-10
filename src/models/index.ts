@@ -1,5 +1,6 @@
 import type {
   CashTransactionType,
+  FundingType,
   InvestmentType,
   MovementType,
   SimulationType,
@@ -40,6 +41,7 @@ export interface MovementEntity {
   amount: number;
   date: Date;
   description: string | null;
+  fundingId: string | null;
   createdAt: Date;
 }
 
@@ -106,6 +108,7 @@ export interface CreateMovementData {
   amount: number;
   date: Date;
   description?: string;
+  fundingId?: string;
 }
 
 export interface UpdateMovementData {
@@ -203,6 +206,8 @@ export interface TransactionEntity {
   amount: number;
   date: Date;
   description: string | null;
+  transferId: string | null;
+  fundingId: string | null;
   createdAt: Date;
 }
 
@@ -245,6 +250,8 @@ export interface CreateTransactionData {
   amount: number;
   date: Date;
   description?: string;
+  transferId?: string;
+  fundingId?: string;
 }
 
 export interface UpdateTransactionData {
@@ -281,4 +288,81 @@ export interface CashSummaryResult {
   balance: number;
   byCategory: CashSummaryByCategory[];
   byParentCategory: CashSummaryByParentCategory[];
+}
+
+export interface CashTransferEntity {
+  id: string;
+  userId: string;
+  fromCashAccountId: string;
+  toCashAccountId: string;
+  amount: number;
+  date: Date;
+  description: string | null;
+  createdAt: Date;
+}
+
+export interface CashTransferAccountInfo {
+  id: string;
+  name: string;
+  currency: string;
+}
+
+export interface CashTransferWithDetails extends CashTransferEntity {
+  fromAccount: CashTransferAccountInfo;
+  toAccount: CashTransferAccountInfo;
+  outTransactionId: string;
+  inTransactionId: string;
+}
+
+export interface CreateCashTransferData {
+  userId: string;
+  fromCashAccountId: string;
+  toCashAccountId: string;
+  amount: number;
+  date: Date;
+  description?: string;
+  outCategoryId: string;
+  inCategoryId: string;
+}
+
+export interface AccountFundingEntity {
+  id: string;
+  userId: string;
+  type: FundingType;
+  cashAccountId: string;
+  investmentAccountId: string;
+  amount: number;
+  date: Date;
+  description: string | null;
+  createdAt: Date;
+}
+
+export interface FundingAccountInfo {
+  id: string;
+  name: string;
+  currency: string;
+}
+
+export interface FundingInvestmentAccountInfo extends FundingAccountInfo {
+  investmentType: InvestmentType;
+}
+
+export interface AccountFundingWithDetails extends AccountFundingEntity {
+  cashAccount: FundingAccountInfo;
+  investmentAccount: FundingInvestmentAccountInfo;
+  cashTransactionId: string;
+  investmentMovementId: string;
+}
+
+export interface CreateAccountFundingData {
+  userId: string;
+  type: FundingType;
+  cashAccountId: string;
+  investmentAccountId: string;
+  amount: number;
+  date: Date;
+  description?: string;
+  cashCategoryId: string;
+  cashTransactionType: CashTransactionType;
+  movementType: MovementType;
 }

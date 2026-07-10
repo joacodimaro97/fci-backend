@@ -12,6 +12,8 @@ export interface TransactionFilters {
   type?: CashTransactionType;
   startDate?: Date;
   endDate?: Date;
+  excludeTransfers?: boolean;
+  excludeFundings?: boolean;
 }
 
 export interface ITransactionRepository {

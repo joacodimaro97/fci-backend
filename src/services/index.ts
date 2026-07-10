@@ -1,6 +1,8 @@
 import {
   accountRepository,
+  accountFundingRepository,
   cashAccountRepository,
+  cashTransferRepository,
   categoryRepository,
   movementRepository,
   performanceRepository,
@@ -17,7 +19,9 @@ import { MovementService } from './MovementService.js';
 import { PerformanceService } from './PerformanceService.js';
 import { SimulationService } from './SimulationService.js';
 import { StatisticsService } from './StatisticsService.js';
+import { FundingService } from './FundingService.js';
 import { TransactionService } from './TransactionService.js';
+import { TransferService } from './TransferService.js';
 
 let signTokenFn: (payload: { sub: string; email: string }) => string = () => '';
 
@@ -50,5 +54,16 @@ export const transactionService = new TransactionService(
 export const cashSummaryService = new CashSummaryService(
   transactionRepository,
   cashAccountRepository,
+  categoryRepository,
+);
+export const transferService = new TransferService(
+  cashTransferRepository,
+  cashAccountRepository,
+  categoryRepository,
+);
+export const fundingService = new FundingService(
+  accountFundingRepository,
+  cashAccountRepository,
+  accountRepository,
   categoryRepository,
 );

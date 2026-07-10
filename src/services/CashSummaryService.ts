@@ -48,7 +48,12 @@ export class CashSummaryService {
       { categoryId: string; categoryName: string; type: CashTransactionType; total: number; count: number }
     >();
 
+    const isSingleAccountView = Boolean(query.cashAccountId);
+
     for (const tx of transactions) {
+      if (!isSingleAccountView && (tx.transferId || tx.fundingId)) {
+        continue;
+      }
       if (tx.type === CashTransactionType.INCOME) {
         totalIncome += tx.amount;
       } else {

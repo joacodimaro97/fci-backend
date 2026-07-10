@@ -1,4 +1,4 @@
-import { NotFoundError } from '../errors/AppError.js';
+import { NotFoundError, ValidationError } from '../errors/AppError.js';
 import type { MovementEntity } from '../models/index.js';
 import type { IAccountRepository } from '../repositories/IAccountRepository.js';
 import type { IMovementRepository } from '../repositories/IMovementRepository.js';
@@ -44,6 +44,12 @@ export class MovementService {
       throw new NotFoundError('Movimiento');
     }
 
+    if (movement.fundingId) {
+      throw new ValidationError(
+        'Este movimiento pertenece a un registro efectivo↔inversión. Eliminá el registro en /fundings',
+      );
+    }
+
     return this.movementRepository.update(movementId, {
       type: input.type,
       amount: input.amount,
@@ -58,6 +64,13 @@ export class MovementService {
     if (!movement) {
       throw new NotFoundError('Movimiento');
     }
+
+    if (movement.fundingId) {
+      throw new ValidationError(
+        'Este movimiento pertenece a un registro efectivo↔inversión. Eliminá el registro en /fundings',
+      );
+    }
+
     await this.movementRepository.delete(movementId);
   }
 

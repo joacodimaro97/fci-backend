@@ -72,6 +72,14 @@ export class PrismaTransactionRepository implements ITransactionRepository {
       }
     }
 
+    if (filters.excludeTransfers) {
+      where.transferId = null;
+    }
+
+    if (filters.excludeFundings) {
+      where.fundingId = null;
+    }
+
     return where;
   }
 }
