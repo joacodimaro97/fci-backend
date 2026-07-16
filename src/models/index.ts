@@ -366,3 +366,79 @@ export interface CreateAccountFundingData {
   cashTransactionType: CashTransactionType;
   movementType: MovementType;
 }
+
+export interface BudgetEntity {
+  id: string;
+  userId: string;
+  cashAccountId: string | null;
+  name: string;
+  amount: number;
+  startDate: Date;
+  endDate: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  categoryIds: string[];
+}
+
+export interface CreateBudgetData {
+  userId: string;
+  cashAccountId?: string | null;
+  name: string;
+  amount: number;
+  startDate: Date;
+  endDate: Date;
+  categoryIds?: string[];
+}
+
+export interface UpdateBudgetData {
+  cashAccountId?: string | null;
+  name?: string;
+  amount?: number;
+  startDate?: Date;
+  endDate?: Date;
+  categoryIds?: string[];
+}
+
+export type BudgetStatus =
+  | 'NOT_STARTED'
+  | 'ON_TRACK'
+  | 'UNDER_BUDGET'
+  | 'OVER_BUDGET'
+  | 'COMPLETED';
+
+export interface BudgetAnalysis {
+  totalDays: number;
+  daysElapsed: number;
+  daysRemaining: number;
+  dailyAllowance: number;
+  spent: number;
+  remaining: number;
+  expectedToDate: number;
+  difference: number;
+  suggestedDailyRemaining: number;
+  averageDailySpent: number;
+  projectedTotal: number;
+  percentUsed: number;
+  overspent: boolean;
+  status: BudgetStatus;
+}
+
+export interface BudgetAccountInfo {
+  id: string;
+  name: string;
+  currency: string;
+}
+
+export interface BudgetCategoryInfo {
+  id: string;
+  name: string;
+  type: CashTransactionType;
+  color: string | null;
+  parentId: string | null;
+}
+
+export interface BudgetWithAnalysis extends BudgetEntity {
+  cashAccount: BudgetAccountInfo | null;
+  categories: BudgetCategoryInfo[];
+  analysis: BudgetAnalysis;
+}

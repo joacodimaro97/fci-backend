@@ -13,6 +13,7 @@ const prisma = new PrismaClient();
 async function main(): Promise<void> {
   console.log('Iniciando seed...');
 
+  await prisma.budget.deleteMany();
   await prisma.transaction.deleteMany();
   await prisma.cashTransfer.deleteMany();
   await prisma.accountFunding.deleteMany();
@@ -379,6 +380,33 @@ async function main(): Promise<void> {
     },
   });
 
+  const budgetStart = new Date(year, month, 1, 0, 0, 0, 0);
+  const budgetEnd = new Date(year, month + 1, 0, 0, 0, 0, 0);
+  await prisma.budget.create({
+    data: {
+      userId: user.id,
+      cashAccountId: cashAccount.id,
+      name: 'Gastos del mes',
+      amount: 300000,
+      startDate: budgetStart,
+      endDate: budgetEnd,
+    },
+  });
+
+  await prisma.budget.create({
+    data: {
+      userId: user.id,
+      cashAccountId: null,
+      name: 'Presupuesto alimentación',
+      amount: 150000,
+      startDate: budgetStart,
+      endDate: budgetEnd,
+      categories: {
+        create: [{ categoryId: rootByName['Alimentación']! }],
+      },
+    },
+  });
+
   console.log('Seed completado:');
   console.log(`  Usuario: demo@fci.com / password123`);
   console.log(`  Cuenta inversión: ${account.name}`);
@@ -392,6 +420,7 @@ async function main(): Promise<void> {
   console.log(`  Transacciones: ${transactionsSeed.length}`);
   console.log(`  Transferencias: 1`);
   console.log(`  Movimientos efectivo↔inversión: 1`);
+  console.log(`  Presupuestos: 2`);
 }
 
 main()

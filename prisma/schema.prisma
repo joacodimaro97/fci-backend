@@ -53,6 +53,7 @@ model User {
   categories   Category[]
   transfers    CashTransfer[]
   fundings     AccountFunding[]
+  budgets      Budget[]
 }
 
 model Account {
@@ -148,6 +149,7 @@ model CashAccount {
   transfersOut   CashTransfer[] @relation("TransferOut")
   transfersIn    CashTransfer[] @relation("TransferIn")
   fundings       AccountFunding[]
+  budgets        Budget[]
 
   @@index([userId])
 }
@@ -165,6 +167,7 @@ model Category {
   parent       Category?           @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
   children     Category[]          @relation("CategoryHierarchy")
   transactions Transaction[]
+  budgets      BudgetCategory[]
 
   @@index([userId])
   @@index([parentId])
@@ -236,4 +239,34 @@ model AccountFunding {
   @@index([investmentAccountId])
   @@index([date])
   @@index([type])
+}
+
+model Budget {
+  id            String           @id @default(cuid())
+  userId        String
+  cashAccountId String?
+  name          String
+  amount        Float
+  startDate     DateTime
+  endDate       DateTime
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cashAccount   CashAccount?     @relation(fields: [cashAccountId], references: [id], onDelete: Cascade)
+  categories    BudgetCategory[]
+
+  @@index([userId])
+  @@index([cashAccountId])
+  @@index([startDate])
+  @@index([endDate])
+}
+
+model BudgetCategory {
+  budgetId   String
+  categoryId String
+  budget     Budget   @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([budgetId, categoryId])
+  @@index([categoryId])
 }

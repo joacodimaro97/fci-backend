@@ -9,6 +9,7 @@ export interface TransactionFilters {
   cashAccountIds?: string[];
   cashAccountId?: string;
   categoryId?: string;
+  categoryIds?: string[];
   type?: CashTransactionType;
   startDate?: Date;
   endDate?: Date;

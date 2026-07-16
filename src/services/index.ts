@@ -1,6 +1,7 @@
 import {
   accountRepository,
   accountFundingRepository,
+  budgetRepository,
   cashAccountRepository,
   cashTransferRepository,
   categoryRepository,
@@ -19,6 +20,7 @@ import { MovementService } from './MovementService.js';
 import { PerformanceService } from './PerformanceService.js';
 import { SimulationService } from './SimulationService.js';
 import { StatisticsService } from './StatisticsService.js';
+import { BudgetService } from './BudgetService.js';
 import { FundingService } from './FundingService.js';
 import { TransactionService } from './TransactionService.js';
 import { TransferService } from './TransferService.js';
@@ -65,5 +67,11 @@ export const fundingService = new FundingService(
   accountFundingRepository,
   cashAccountRepository,
   accountRepository,
+  categoryRepository,
+);
+export const budgetService = new BudgetService(
+  budgetRepository,
+  cashAccountRepository,
+  transactionRepository,
   categoryRepository,
 );

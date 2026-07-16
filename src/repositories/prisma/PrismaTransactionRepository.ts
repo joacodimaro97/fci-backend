@@ -56,6 +56,8 @@ export class PrismaTransactionRepository implements ITransactionRepository {
 
     if (filters.categoryId) {
       where.categoryId = filters.categoryId;
+    } else if (filters.categoryIds?.length) {
+      where.categoryId = { in: filters.categoryIds };
     }
 
     if (filters.type) {
