@@ -13,7 +13,7 @@ import type { ICashAccountRepository } from '../repositories/ICashAccountReposit
 import type { ICategoryRepository } from '../repositories/ICategoryRepository.js';
 import type { ITransactionRepository } from '../repositories/ITransactionRepository.js';
 import { CashTransactionType } from '../types/enums.js';
-import { endOfDay, parseDate, startOfDay } from '../utils/index.js';
+import { endOfDay, parseDate, startOfDay, todayCalendarDate } from '../utils/index.js';
 import type {
   CreateBudgetInput,
   UpdateBudgetInput,
@@ -71,10 +71,8 @@ export class BudgetService {
     const account = await this.resolveOptionalAccount(userId, input.cashAccountId);
     const selectedCategories = await this.resolveCategories(userId, input.categoryIds);
 
-    const startDate = input.startDate
-      ? startOfDay(parseDate(input.startDate))
-      : startOfDay(new Date());
-    const endDate = startOfDay(parseDate(input.endDate));
+    const startDate = input.startDate ? parseDate(input.startDate) : todayCalendarDate();
+    const endDate = parseDate(input.endDate);
     this.assertDateRange(startDate, endDate);
 
     const amount = await this.resolveAmount(input.amount, account, selectedCategories.length > 0);
@@ -134,10 +132,8 @@ export class BudgetService {
       throw new ValidationError('El monto es requerido cuando el presupuesto tiene categorías');
     }
 
-    const startDate = input.startDate
-      ? startOfDay(parseDate(input.startDate))
-      : budget.startDate;
-    const endDate = input.endDate ? startOfDay(parseDate(input.endDate)) : budget.endDate;
+    const startDate = input.startDate ? parseDate(input.startDate) : budget.startDate;
+    const endDate = input.endDate ? parseDate(input.endDate) : budget.endDate;
     this.assertDateRange(startDate, endDate);
 
     const updated = await this.budgetRepository.update(budgetId, {
@@ -205,7 +201,7 @@ export class BudgetService {
   ): Promise<BudgetAnalysis> {
     const start = startOfDay(budget.startDate);
     const end = startOfDay(budget.endDate);
-    const today = startOfDay(new Date());
+    const today = startOfDay(todayCalendarDate());
 
     const totalDays = Math.max(1, Math.round((end.getTime() - start.getTime()) / DAY_MS) + 1);
     const dailyAllowance = budget.amount / totalDays;

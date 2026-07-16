@@ -2,7 +2,7 @@ import { NotFoundError, ValidationError } from '../errors/AppError.js';
 import type { MovementEntity } from '../models/index.js';
 import type { IAccountRepository } from '../repositories/IAccountRepository.js';
 import type { IMovementRepository } from '../repositories/IMovementRepository.js';
-import { parseDate } from '../utils/index.js';
+import { endOfDay, parseDate, startOfDay } from '../utils/index.js';
 import type {
   CreateMovementInput,
   MovementQueryInput,
@@ -20,8 +20,8 @@ export class MovementService {
 
     return this.movementRepository.findByFilters({
       accountIds,
-      startDate: query.startDate ? parseDate(query.startDate) : undefined,
-      endDate: query.endDate ? parseDate(query.endDate) : undefined,
+      startDate: query.startDate ? startOfDay(parseDate(query.startDate)) : undefined,
+      endDate: query.endDate ? endOfDay(parseDate(query.endDate)) : undefined,
     });
   }
 

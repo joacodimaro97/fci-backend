@@ -7,7 +7,7 @@ import type {
 } from '../models/index.js';
 import type { IAccountRepository } from '../repositories/IAccountRepository.js';
 import type { IPerformanceRepository } from '../repositories/IPerformanceRepository.js';
-import { normalizePerformanceDate, parseDate } from '../utils/index.js';
+import { endOfDay, normalizePerformanceDate, parseDate, startOfDay } from '../utils/index.js';
 import type {
   CreatePerformanceInput,
   PerformancePeriodQueryInput,
@@ -26,8 +26,8 @@ export class PerformanceService {
 
     return this.performanceRepository.findByFilters({
       accountIds,
-      startDate: query.startDate ? parseDate(query.startDate) : undefined,
-      endDate: query.endDate ? parseDate(query.endDate) : undefined,
+      startDate: query.startDate ? startOfDay(parseDate(query.startDate)) : undefined,
+      endDate: query.endDate ? endOfDay(parseDate(query.endDate)) : undefined,
     });
   }
 

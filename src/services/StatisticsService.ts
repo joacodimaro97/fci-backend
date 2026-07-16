@@ -4,7 +4,7 @@ import { NotFoundError } from '../errors/AppError.js';
 import type { IAccountRepository } from '../repositories/IAccountRepository.js';
 import type { IMovementRepository } from '../repositories/IMovementRepository.js';
 import type { IPerformanceRepository } from '../repositories/IPerformanceRepository.js';
-import { parseDate } from '../utils/index.js';
+import { endOfDay, parseDate, startOfDay } from '../utils/index.js';
 import type { StatisticsQueryInput } from '../validators/statistics.validator.js';
 
 export class StatisticsService {
@@ -19,14 +19,14 @@ export class StatisticsService {
 
     const performances = await this.performanceRepository.findByFilters({
       accountIds,
-      startDate: query.startDate ? parseDate(query.startDate) : undefined,
-      endDate: query.endDate ? parseDate(query.endDate) : undefined,
+      startDate: query.startDate ? startOfDay(parseDate(query.startDate)) : undefined,
+      endDate: query.endDate ? endOfDay(parseDate(query.endDate)) : undefined,
     });
 
     const movements = await this.movementRepository.findByFilters({
       accountIds,
-      startDate: query.startDate ? parseDate(query.startDate) : undefined,
-      endDate: query.endDate ? parseDate(query.endDate) : undefined,
+      startDate: query.startDate ? startOfDay(parseDate(query.startDate)) : undefined,
+      endDate: query.endDate ? endOfDay(parseDate(query.endDate)) : undefined,
     });
 
     const currentCapital =
