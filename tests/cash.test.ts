@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { validate } from '../src/validators/validate.js';
 import { createCashAccountSchema } from '../src/validators/cashAccount.validator.js';
 import { createCategorySchema } from '../src/validators/category.validator.js';
-import { createTransactionSchema } from '../src/validators/transaction.validator.js';
+import { createTransactionSchema, transactionQuerySchema } from '../src/validators/transaction.validator.js';
 import { cashSummaryQuerySchema } from '../src/validators/cashSummary.validator.js';
 import { createTransferSchema } from '../src/validators/transfer.validator.js';
 import { createFundingSchema } from '../src/validators/funding.validator.js';
@@ -12,6 +12,7 @@ import { CashTransactionType } from '../src/types/enums.js';
 import { ValidationError } from '../src/errors/AppError.js';
 import { CashSummaryService } from '../src/services/CashSummaryService.js';
 import { BudgetService } from '../src/services/BudgetService.js';
+import { TransactionService } from '../src/services/TransactionService.js';
 import type { ICashAccountRepository } from '../src/repositories/ICashAccountRepository.js';
 import type { ICategoryRepository } from '../src/repositories/ICategoryRepository.js';
 import type { ITransactionRepository } from '../src/repositories/ITransactionRepository.js';
@@ -22,6 +23,7 @@ import type {
   CategoryEntity,
   TransactionEntity,
 } from '../src/models/index.js';
+import { parseDate } from '../src/utils/index.js';
 
 describe('Cash validators', () => {
   it('createCashAccountSchema valida cuenta con openingBalance', () => {
@@ -110,6 +112,14 @@ describe('Cash validators', () => {
     });
     expect(result.categoryIds).toEqual(['cat-1', 'cat-2']);
     expect(result.amount).toBe(80000);
+  });
+
+  it('transactionQuerySchema acepta categoryIds repetidos como array o string', () => {
+    expect(validate(transactionQuerySchema, { categoryIds: ['a', 'b'] }).categoryIds).toEqual([
+      'a',
+      'b',
+    ]);
+    expect(validate(transactionQuerySchema, { categoryIds: 'solo' }).categoryIds).toEqual(['solo']);
   });
 });
 
@@ -740,5 +750,375 @@ describe('BudgetService', () => {
     expect(result.categories).toHaveLength(1);
     expect(result.categories[0]!.name).toBe('Alimentación');
     expect(result.cashAccount).toBeNull();
+  });
+});
+
+describe('TransactionService.getAll', () => {
+  const cashAccount: CashAccountEntity = {
+    id: 'cash-1',
+    userId: 'user-1',
+    name: 'Caja',
+    description: null,
+    currency: 'ARS',
+    openingBalance: 0,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+
+  const categories: CategoryEntity[] = [
+    {
+      id: 'parent-food',
+      userId: 'user-1',
+      parentId: null,
+      name: 'Alimentación',
+      type: CashTransactionType.EXPENSE,
+      color: '#fff',
+      icon: 'food',
+      createdAt: new Date(),
+    },
+    {
+      id: 'cat-food',
+      userId: 'user-1',
+      parentId: 'parent-food',
+      name: 'Supermercado',
+      type: CashTransactionType.EXPENSE,
+      color: null,
+      icon: null,
+      createdAt: new Date(),
+    },
+    {
+      id: 'cat-other',
+      userId: 'user-1',
+      parentId: null,
+      name: 'Ocio',
+      type: CashTransactionType.EXPENSE,
+      color: null,
+      icon: null,
+      createdAt: new Date(),
+    },
+  ];
+
+  const transactions: TransactionEntity[] = [
+    {
+      id: 'tx-1',
+      cashAccountId: 'cash-1',
+      categoryId: 'cat-food',
+      type: CashTransactionType.EXPENSE,
+      amount: 5000,
+      date: new Date(2026, 6, 1),
+      description: null,
+      transferId: null,
+      fundingId: null,
+      createdAt: new Date(),
+    },
+    {
+      id: 'tx-2',
+      cashAccountId: 'cash-1',
+      categoryId: 'cat-other',
+      type: CashTransactionType.EXPENSE,
+      amount: 2000,
+      date: new Date(2026, 6, 2),
+      description: null,
+      transferId: null,
+      fundingId: null,
+      createdAt: new Date(),
+    },
+  ];
+
+  function buildService() {
+    let lastFilters: Parameters<ITransactionRepository['findByFilters']>[0] | undefined;
+
+    const cashAccountRepository: ICashAccountRepository = {
+      create: async () => cashAccount,
+      findById: async () => cashAccount,
+      findByUserId: async () => [cashAccount],
+      findByIdAndUserId: async () => cashAccount,
+      update: async () => cashAccount,
+      delete: async () => undefined,
+    };
+
+    const categoryRepository: ICategoryRepository = {
+      create: async () => categories[0]!,
+      findById: async (id) => categories.find((c) => c.id === id) ?? null,
+      findByFilters: async () => categories,
+      findByIdAndUserId: async (id) => categories.find((c) => c.id === id) ?? null,
+      update: async () => categories[0]!,
+      delete: async () => undefined,
+      countTransactions: async () => 0,
+      countChildren: async () => 0,
+    };
+
+    const transactionRepository: ITransactionRepository = {
+      create: async () => transactions[0]!,
+      findById: async () => transactions[0]!,
+      findByFilters: async (filters) => {
+        lastFilters = filters;
+        let result = transactions;
+        if (filters.categoryId) {
+          result = result.filter((tx) => tx.categoryId === filters.categoryId);
+        } else if (filters.categoryIds?.length) {
+          result = result.filter((tx) => filters.categoryIds!.includes(tx.categoryId));
+        }
+        return result;
+      },
+      findByIdAndCashAccountIds: async () => transactions[0]!,
+      update: async () => transactions[0]!,
+      delete: async () => undefined,
+    };
+
+    return {
+      service: new TransactionService(
+        transactionRepository,
+        cashAccountRepository,
+        categoryRepository,
+      ),
+      getLastFilters: () => lastFilters,
+    };
+  }
+
+  it('filtra por categoría padre incluyendo transacciones de hijas', async () => {
+    const { service, getLastFilters } = buildService();
+    const result = await service.getAll('user-1', { categoryId: 'parent-food' });
+
+    expect(getLastFilters()?.categoryIds).toEqual(
+      expect.arrayContaining(['parent-food', 'cat-food']),
+    );
+    expect(getLastFilters()?.categoryId).toBeUndefined();
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0]!.id).toBe('tx-1');
+    expect(result.stats.totalExpense).toBe(5000);
+    expect(result.stats.expenseCount).toBe(1);
+  });
+
+  it('filtra por subcategoría con match exacto', async () => {
+    const { service, getLastFilters } = buildService();
+    const result = await service.getAll('user-1', { categoryId: 'cat-food' });
+
+    expect(getLastFilters()?.categoryIds).toEqual(['cat-food']);
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0]!.id).toBe('tx-1');
+  });
+
+  it('filtra por categoryIds sin expandir padres', async () => {
+    const { service, getLastFilters } = buildService();
+    const result = await service.getAll('user-1', {
+      categoryIds: ['cat-food', 'cat-other'],
+    });
+
+    expect(getLastFilters()?.categoryIds).toEqual(['cat-food', 'cat-other']);
+    expect(result.items).toHaveLength(2);
+    expect(result.stats.transactionCount).toBe(2);
+  });
+
+  it('prioridad de categoryIds sobre categoryId (sin expandir)', async () => {
+    const { service, getLastFilters } = buildService();
+    const result = await service.getAll('user-1', {
+      categoryId: 'parent-food',
+      categoryIds: ['cat-other'],
+    });
+
+    expect(getLastFilters()?.categoryIds).toEqual(['cat-other']);
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0]!.id).toBe('tx-2');
+  });
+
+  it('devuelve stats coherentes con items y rango del query', async () => {
+    const { service } = buildService();
+    const result = await service.getAll('user-1', {
+      startDate: '2026-07-01',
+      endDate: '2026-07-20',
+    });
+
+    expect(result.items).toHaveLength(2);
+    expect(result.stats).toMatchObject({
+      totalIncome: 0,
+      totalExpense: 7000,
+      net: -7000,
+      transactionCount: 2,
+      incomeCount: 0,
+      expenseCount: 2,
+      startDate: '2026-07-01',
+      endDate: '2026-07-20',
+      totalDays: 20,
+      averageDailyExpense: 350,
+      averageDailyIncome: 0,
+    });
+  });
+
+  it('arma byWeek lun–dom con parciales y highlights por averageDailyExpense', async () => {
+    const weeklyTransactions: TransactionEntity[] = [
+      {
+        id: 'tx-w1',
+        cashAccountId: 'cash-1',
+        categoryId: 'cat-food',
+        type: CashTransactionType.EXPENSE,
+        amount: 5000,
+        date: parseDate('2026-07-01'),
+        description: null,
+        transferId: null,
+        fundingId: null,
+        createdAt: new Date(),
+      },
+      {
+        id: 'tx-w2',
+        cashAccountId: 'cash-1',
+        categoryId: 'cat-food',
+        type: CashTransactionType.EXPENSE,
+        amount: 14000,
+        date: parseDate('2026-07-08'),
+        description: null,
+        transferId: null,
+        fundingId: null,
+        createdAt: new Date(),
+      },
+      {
+        id: 'tx-w3',
+        cashAccountId: 'cash-1',
+        categoryId: 'cat-other',
+        type: CashTransactionType.INCOME,
+        amount: 1000,
+        date: parseDate('2026-07-10'),
+        description: null,
+        transferId: null,
+        fundingId: null,
+        createdAt: new Date(),
+      },
+    ];
+
+    const service = new TransactionService(
+      {
+        create: async () => weeklyTransactions[0]!,
+        findById: async () => weeklyTransactions[0]!,
+        findByFilters: async () => weeklyTransactions,
+        findByIdAndCashAccountIds: async () => weeklyTransactions[0]!,
+        update: async () => weeklyTransactions[0]!,
+        delete: async () => undefined,
+      },
+      {
+        create: async () => cashAccount,
+        findById: async () => cashAccount,
+        findByUserId: async () => [cashAccount],
+        findByIdAndUserId: async () => cashAccount,
+        update: async () => cashAccount,
+        delete: async () => undefined,
+      },
+      {
+        create: async () => categories[0]!,
+        findById: async (id) => categories.find((c) => c.id === id) ?? null,
+        findByFilters: async () => categories,
+        findByIdAndUserId: async (id) => categories.find((c) => c.id === id) ?? null,
+        update: async () => categories[0]!,
+        delete: async () => undefined,
+        countTransactions: async () => 0,
+        countChildren: async () => 0,
+      },
+    );
+
+    const result = await service.getAll('user-1', {
+      startDate: '2026-07-01',
+      endDate: '2026-07-31',
+    });
+
+    expect(result.stats.byWeek).toHaveLength(5);
+    expect(result.stats.byWeek[0]).toMatchObject({
+      weekStart: '2026-07-01',
+      weekEnd: '2026-07-05',
+      label: '1–5 jul',
+      dayCount: 5,
+      partial: true,
+      totalExpense: 5000,
+      expenseCount: 1,
+      averageDailyExpense: 1000,
+    });
+    expect(result.stats.byWeek[1]).toMatchObject({
+      weekStart: '2026-07-06',
+      weekEnd: '2026-07-12',
+      label: '6–12 jul',
+      dayCount: 7,
+      partial: false,
+      totalExpense: 14000,
+      totalIncome: 1000,
+      expenseCount: 1,
+      averageDailyExpense: 2000,
+    });
+    expect(result.stats.byWeek[4]).toMatchObject({
+      weekStart: '2026-07-27',
+      weekEnd: '2026-07-31',
+      dayCount: 5,
+      partial: true,
+      totalExpense: 0,
+    });
+    expect(result.stats.highestExpenseWeek).toEqual({
+      weekStart: '2026-07-06',
+      totalExpense: 14000,
+      averageDailyExpense: 2000,
+    });
+    expect(result.stats.lowestExpenseWeek).toEqual({
+      weekStart: '2026-07-01',
+      totalExpense: 5000,
+      averageDailyExpense: 1000,
+    });
+  });
+
+  it('sin startDate+endDate → byWeek vacío y highlights null', async () => {
+    const { service } = buildService();
+    const result = await service.getAll('user-1', { categoryId: 'cat-food' });
+
+    expect(result.stats.byWeek).toEqual([]);
+    expect(result.stats.highestExpenseWeek).toBeNull();
+    expect(result.stats.lowestExpenseWeek).toBeNull();
+  });
+
+  it('sin resultados devuelve items vacíos y stats en cero', async () => {
+    const emptyRepo: ITransactionRepository = {
+      create: async () => transactions[0]!,
+      findById: async () => null,
+      findByFilters: async () => [],
+      findByIdAndCashAccountIds: async () => null,
+      update: async () => transactions[0]!,
+      delete: async () => undefined,
+    };
+
+    const service = new TransactionService(
+      emptyRepo,
+      {
+        create: async () => cashAccount,
+        findById: async () => cashAccount,
+        findByUserId: async () => [cashAccount],
+        findByIdAndUserId: async () => cashAccount,
+        update: async () => cashAccount,
+        delete: async () => undefined,
+      },
+      {
+        create: async () => categories[0]!,
+        findById: async () => null,
+        findByFilters: async () => categories,
+        findByIdAndUserId: async () => null,
+        update: async () => categories[0]!,
+        delete: async () => undefined,
+        countTransactions: async () => 0,
+        countChildren: async () => 0,
+      },
+    );
+
+    const result = await service.getAll('user-1', {});
+
+    expect(result.items).toEqual([]);
+    expect(result.stats).toEqual({
+      totalIncome: 0,
+      totalExpense: 0,
+      net: 0,
+      transactionCount: 0,
+      incomeCount: 0,
+      expenseCount: 0,
+      startDate: null,
+      endDate: null,
+      totalDays: 0,
+      averageDailyExpense: 0,
+      averageDailyIncome: 0,
+      byWeek: [],
+      highestExpenseWeek: null,
+      lowestExpenseWeek: null,
+    });
   });
 });

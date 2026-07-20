@@ -8,13 +8,27 @@ export async function transactionRoutes(fastify: FastifyInstance): Promise<void>
   fastify.get('/', {
     schema: {
       tags: ['Cash Transactions'],
-      description: 'Listar transacciones de ingresos/gastos',
+      description:
+        'Listar transacciones con stats del set filtrado ({ items, stats }). ' +
+        'categoryIds (repetible) filtra IN exacto sin expandir; tiene prioridad sobre categoryId. ' +
+        'Si solo viene categoryId y es padre, incluye hijas. ' +
+        'stats.totalDays usa startDate/endDate del query (inclusive); ' +
+        'si falta alguno se completa con min/max fecha de los items; ' +
+        'sin fechas ni items → totalDays 0 y fechas null. ' +
+        'stats.byWeek (lun–dom UTC) solo si hay startDate y endDate; parciales con partial/dayCount; ' +
+        'sin ambas fechas → byWeek [] y highest/lowest null.',
       security: [{ bearerAuth: [] }],
       querystring: {
         type: 'object',
         properties: {
           cashAccountId: { type: 'string' },
           categoryId: { type: 'string' },
+          categoryIds: {
+            anyOf: [
+              { type: 'string' },
+              { type: 'array', items: { type: 'string' } },
+            ],
+          },
           type: { type: 'string', enum: ['INCOME', 'EXPENSE'] },
           startDate: { type: 'string' },
           endDate: { type: 'string' },

@@ -290,6 +290,49 @@ export interface CashSummaryResult {
   byParentCategory: CashSummaryByParentCategory[];
 }
 
+export interface TransactionWeekStats {
+  weekStart: string;
+  weekEnd: string;
+  label: string;
+  dayCount: number;
+  partial: boolean;
+  totalExpense: number;
+  totalIncome: number;
+  expenseCount: number;
+  averageDailyExpense: number;
+}
+
+export interface TransactionWeekHighlight {
+  weekStart: string;
+  totalExpense: number;
+  averageDailyExpense: number;
+}
+
+export interface TransactionListStats {
+  totalIncome: number;
+  totalExpense: number;
+  net: number;
+  transactionCount: number;
+  incomeCount: number;
+  expenseCount: number;
+  /** YYYY-MM-DD; null si no hay rango determinable (sin fechas en query y sin items). */
+  startDate: string | null;
+  /** YYYY-MM-DD; null si no hay rango determinable (sin fechas en query y sin items). */
+  endDate: string | null;
+  totalDays: number;
+  averageDailyExpense: number;
+  averageDailyIncome: number;
+  /** Vacío si el query no trae startDate y endDate. */
+  byWeek: TransactionWeekStats[];
+  highestExpenseWeek: TransactionWeekHighlight | null;
+  lowestExpenseWeek: TransactionWeekHighlight | null;
+}
+
+export interface TransactionListResult {
+  items: TransactionEntity[];
+  stats: TransactionListStats;
+}
+
 export interface CashTransferEntity {
   id: string;
   userId: string;

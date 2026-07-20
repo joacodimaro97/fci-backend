@@ -31,6 +31,12 @@ export const transactionIdParamSchema = z.object({
 export const transactionQuerySchema = z.object({
   cashAccountId: z.string().optional(),
   categoryId: z.string().optional(),
+  categoryIds: z
+    .preprocess((val) => {
+      if (val === undefined || val === null || val === '') return undefined;
+      return Array.isArray(val) ? val : [val];
+    }, z.array(z.string().min(1)).optional())
+    .transform((ids) => (ids?.length ? [...new Set(ids)] : undefined)),
   type: z.nativeEnum(CashTransactionType).optional(),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
