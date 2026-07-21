@@ -8,11 +8,12 @@ const dateSchema = z
 
 export const createTransactionSchema = z.object({
   cashAccountId: z.string().min(1, 'El ID de cuenta cash es requerido'),
-  categoryId: z.string().min(1, 'El ID de categoría es requerido'),
+  categoryId: z.string().min(1, 'El ID de categoría es requerido').optional(),
   type: z.nativeEnum(CashTransactionType),
   amount: z.number().positive('El monto debe ser positivo'),
   date: dateSchema,
   description: z.string().max(500).optional(),
+  relatedExpenseId: z.string().min(1).optional(),
 });
 
 export const updateTransactionSchema = z.object({
@@ -22,6 +23,7 @@ export const updateTransactionSchema = z.object({
   amount: z.number().positive().optional(),
   date: dateSchema.optional(),
   description: z.string().max(500).optional().nullable(),
+  relatedExpenseId: z.string().min(1).optional().nullable(),
 });
 
 export const transactionIdParamSchema = z.object({
@@ -36,12 +38,10 @@ export const transactionQuerySchema = z.object({
   endDate: z.string().optional(),
   excludeTransfers: z
     .enum(['true', 'false'])
-    .optional()
-    .transform((v) => v === 'true'),
+    .optional(),
   excludeFundings: z
     .enum(['true', 'false'])
-    .optional()
-    .transform((v) => v === 'true'),
+    .optional(),
 });
 
 export type CreateTransactionInput = z.infer<typeof createTransactionSchema>;

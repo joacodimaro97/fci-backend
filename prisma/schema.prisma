@@ -184,11 +184,14 @@ model Transaction {
   description   String?
   transferId    String?
   fundingId     String?
+  relatedExpenseId String?
   createdAt     DateTime            @default(now())
   cashAccount   CashAccount         @relation(fields: [cashAccountId], references: [id], onDelete: Cascade)
   category      Category            @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   transfer      CashTransfer?       @relation(fields: [transferId], references: [id], onDelete: Cascade)
   funding       AccountFunding?     @relation(fields: [fundingId], references: [id], onDelete: Cascade)
+  relatedExpense Transaction?       @relation("TransactionReimbursements", fields: [relatedExpenseId], references: [id], onDelete: SetNull)
+  reimbursements Transaction[]      @relation("TransactionReimbursements")
 
   @@index([cashAccountId])
   @@index([categoryId])
@@ -196,6 +199,7 @@ model Transaction {
   @@index([type])
   @@index([transferId])
   @@index([fundingId])
+  @@index([relatedExpenseId])
 }
 
 model CashTransfer {

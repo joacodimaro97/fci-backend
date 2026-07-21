@@ -10,6 +10,8 @@ export interface TransactionFilters {
   cashAccountId?: string;
   categoryId?: string;
   categoryIds?: string[];
+  relatedExpenseId?: string;
+  relatedExpenseIds?: string[];
   type?: CashTransactionType;
   startDate?: Date;
   endDate?: Date;

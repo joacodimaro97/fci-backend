@@ -28,9 +28,20 @@ export class CashSummaryService {
 
     const categories = await this.categoryRepository.findByFilters({ userId });
     const categoryMap = new Map(categories.map((c) => [c.id, c]));
+    const reimbursedByExpenseId = new Map<string, number>();
+
+    for (const tx of transactions) {
+      if (tx.type === CashTransactionType.INCOME && tx.relatedExpenseId) {
+        reimbursedByExpenseId.set(
+          tx.relatedExpenseId,
+          (reimbursedByExpenseId.get(tx.relatedExpenseId) ?? 0) + tx.amount,
+        );
+      }
+    }
 
     let totalIncome = 0;
     let totalExpense = 0;
+    let totalReimbursed = 0;
     const byCategoryMap = new Map<
       string,
       {
@@ -56,9 +67,17 @@ export class CashSummaryService {
       }
       if (tx.type === CashTransactionType.INCOME) {
         totalIncome += tx.amount;
+        if (tx.relatedExpenseId) {
+          totalReimbursed += tx.amount;
+        }
       } else {
         totalExpense += tx.amount;
       }
+
+      const effectiveAmount =
+        tx.type === CashTransactionType.EXPENSE
+          ? Math.max(tx.amount - (reimbursedByExpenseId.get(tx.id) ?? 0), 0)
+          : tx.amount;
 
       const category = categoryMap.get(tx.categoryId);
       const parent = category?.parentId ? categoryMap.get(category.parentId) : undefined;
@@ -76,7 +95,7 @@ export class CashSummaryService {
         total: 0,
         count: 0,
       };
-      existing.total += tx.amount;
+      existing.total += effectiveAmount;
       existing.count += 1;
       byCategoryMap.set(tx.categoryId, existing);
 
@@ -87,15 +106,19 @@ export class CashSummaryService {
         total: 0,
         count: 0,
       };
-      parentAgg.total += tx.amount;
+      parentAgg.total += effectiveAmount;
       parentAgg.count += 1;
       byParentMap.set(rollupId, parentAgg);
     }
+
+    const totalExpenseNet = Math.max(totalExpense - totalReimbursed, 0);
 
     return {
       openingBalance: round2(openingBalance),
       totalIncome: round2(totalIncome),
       totalExpense: round2(totalExpense),
+      totalExpenseNet: round2(totalExpenseNet),
+      totalReimbursed: round2(totalReimbursed),
       balance: round2(openingBalance + totalIncome - totalExpense),
       byCategory: Array.from(byCategoryMap.values())
         .map((item) => ({
