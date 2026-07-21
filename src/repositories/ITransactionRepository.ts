@@ -15,6 +15,7 @@ export interface TransactionFilters {
   endDate?: Date;
   excludeTransfers?: boolean;
   excludeFundings?: boolean;
+  excludeInstallments?: boolean;
 }
 
 export interface ITransactionRepository {

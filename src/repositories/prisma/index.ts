@@ -8,6 +8,7 @@ import { PrismaSimulationRepository } from './PrismaSimulationRepository.js';
 import { PrismaAccountFundingRepository } from './PrismaAccountFundingRepository.js';
 import { PrismaBudgetRepository } from './PrismaBudgetRepository.js';
 import { PrismaCashTransferRepository } from './PrismaCashTransferRepository.js';
+import { PrismaCreditRepository } from './PrismaCreditRepository.js';
 import { PrismaTransactionRepository } from './PrismaTransactionRepository.js';
 import { PrismaUserRepository } from './PrismaUserRepository.js';
 
@@ -22,3 +23,4 @@ export const transactionRepository = new PrismaTransactionRepository(prisma);
 export const cashTransferRepository = new PrismaCashTransferRepository(prisma);
 export const accountFundingRepository = new PrismaAccountFundingRepository(prisma);
 export const budgetRepository = new PrismaBudgetRepository(prisma);
+export const creditRepository = new PrismaCreditRepository(prisma);

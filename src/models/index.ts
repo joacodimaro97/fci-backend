@@ -1,6 +1,9 @@
 import type {
   CashTransactionType,
+  CreditDirection,
+  CreditStatus,
   FundingType,
+  InstallmentStatus,
   InvestmentType,
   MovementType,
   SimulationType,
@@ -11,6 +14,7 @@ export interface UserEntity {
   name: string;
   email: string;
   password: string;
+  telegramChatId: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -19,6 +23,7 @@ export interface UserPublic {
   id: string;
   name: string;
   email: string;
+  telegramLinked: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -208,6 +213,7 @@ export interface TransactionEntity {
   description: string | null;
   transferId: string | null;
   fundingId: string | null;
+  installmentId: string | null;
   createdAt: Date;
 }
 
@@ -252,6 +258,7 @@ export interface CreateTransactionData {
   description?: string;
   transferId?: string;
   fundingId?: string;
+  installmentId?: string;
 }
 
 export interface UpdateTransactionData {
@@ -485,3 +492,119 @@ export interface BudgetWithAnalysis extends BudgetEntity {
   categories: BudgetCategoryInfo[];
   analysis: BudgetAnalysis;
 }
+
+export interface CreditEntity {
+  id: string;
+  userId: string;
+  name: string;
+  description: string | null;
+  counterparty: string | null;
+  direction: CreditDirection;
+  currency: string;
+  principal: number;
+  installmentCount: number;
+  installmentAmount: number;
+  startDate: Date;
+  status: CreditStatus;
+  defaultCashAccountId: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface CreditInstallmentEntity {
+  id: string;
+  creditId: string;
+  number: number;
+  dueDate: Date;
+  amount: number;
+  status: InstallmentStatus;
+  paidAt: Date | null;
+  cashAccountId: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface CreditAccountInfo {
+  id: string;
+  name: string;
+  currency: string;
+}
+
+export interface CreditInstallmentWithMeta extends CreditInstallmentEntity {
+  overdue: boolean;
+  transactionId: string | null;
+}
+
+export interface CreditTotals {
+  paidAmount: number;
+  pendingAmount: number;
+  paidCount: number;
+  pendingCount: number;
+  nextDueDate: Date | null;
+  overdueAmount: number;
+  overdueCount: number;
+}
+
+export interface CreditWithDetails extends CreditEntity {
+  defaultCashAccount: CreditAccountInfo | null;
+  installments: CreditInstallmentWithMeta[];
+  totals: CreditTotals;
+}
+
+export interface CreateCreditData {
+  userId: string;
+  name: string;
+  description?: string;
+  counterparty?: string;
+  direction: CreditDirection;
+  currency: string;
+  principal: number;
+  installmentCount: number;
+  installmentAmount: number;
+  startDate: Date;
+  defaultCashAccountId?: string | null;
+  installments: Array<{
+    number: number;
+    dueDate: Date;
+    amount: number;
+  }>;
+}
+
+export interface UpdateCreditData {
+  name?: string;
+  description?: string | null;
+  counterparty?: string | null;
+  defaultCashAccountId?: string | null;
+  status?: CreditStatus;
+}
+
+export interface PayInstallmentData {
+  installmentId: string;
+  cashAccountId: string;
+  categoryId: string;
+  cashTransactionType: CashTransactionType;
+  date: Date;
+  description?: string;
+}
+
+export interface CalendarInstallmentItem {
+  installmentId: string;
+  creditId: string;
+  creditName: string;
+  counterparty: string | null;
+  direction: CreditDirection;
+  currency: string;
+  number: number;
+  dueDate: Date;
+  amount: number;
+  status: InstallmentStatus;
+  paidAt: Date | null;
+  overdue: boolean;
+}
+
+export interface CreditSummary {
+  owedByMe: { totalPending: number; totalOverdue: number; activeCredits: number };
+  owedToMe: { totalPending: number; totalOverdue: number; activeCredits: number };
+  upcoming: CalendarInstallmentItem[];
+}
+

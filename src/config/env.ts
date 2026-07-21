@@ -19,4 +19,6 @@ export const env = {
   jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? '7d',
   logLevel: process.env.LOG_LEVEL ?? 'info',
   isProduction: process.env.NODE_ENV === 'production',
+  telegramToken: process.env.TOKEN_TELEGRAM ?? '',
+  telegramBotUsername: process.env.TELEGRAM_BOT_USERNAME ?? '',
 } as const;

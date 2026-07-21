@@ -12,6 +12,8 @@ import { cashSummaryRoutes } from './cashSummary.routes.js';
 import { transferRoutes } from './transfer.routes.js';
 import { fundingRoutes } from './funding.routes.js';
 import { budgetRoutes } from './budget.routes.js';
+import { creditRoutes } from './credit.routes.js';
+import { telegramRoutes } from './telegram.routes.js';
 
 export async function registerRoutes(fastify: FastifyInstance): Promise<void> {
   await fastify.register(authRoutes, { prefix: '/auth' });
@@ -28,6 +30,8 @@ export async function registerRoutes(fastify: FastifyInstance): Promise<void> {
   await fastify.register(transferRoutes, { prefix: '/cash/transfers' });
   await fastify.register(fundingRoutes, { prefix: '/fundings' });
   await fastify.register(budgetRoutes, { prefix: '/cash/budgets' });
+  await fastify.register(creditRoutes, { prefix: '/credits' });
+  await fastify.register(telegramRoutes, { prefix: '/telegram' });
 
   fastify.get('/health', {
     schema: {

@@ -48,6 +48,10 @@ export const transactionQuerySchema = z.object({
     .enum(['true', 'false'])
     .optional()
     .transform((v) => v === 'true'),
+  excludeInstallments: z
+    .enum(['true', 'false'])
+    .optional()
+    .transform((v) => v === 'true'),
 });
 
 export type CreateTransactionInput = z.infer<typeof createTransactionSchema>;

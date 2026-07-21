@@ -4,4 +4,7 @@ export {
   SimulationType,
   CashTransactionType,
   FundingType,
+  CreditDirection,
+  CreditStatus,
+  InstallmentStatus,
 } from '@prisma/client';

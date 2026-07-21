@@ -53,6 +53,7 @@ export class TransactionService {
       endDate: query.endDate ? endOfDay(parseDate(query.endDate)) : undefined,
       excludeTransfers: query.excludeTransfers,
       excludeFundings: query.excludeFundings,
+      excludeInstallments: query.excludeInstallments,
     });
 
     return {
@@ -101,6 +102,12 @@ export class TransactionService {
       );
     }
 
+    if (transaction.installmentId) {
+      throw new ValidationError(
+        'Esta transacción pertenece al pago de una cuota. Deshacé el pago en /credits',
+      );
+    }
+
     const nextCashAccountId = input.cashAccountId ?? transaction.cashAccountId;
     const nextCategoryId = input.categoryId ?? transaction.categoryId;
     const nextType = input.type ?? transaction.type;
@@ -140,6 +147,12 @@ export class TransactionService {
     if (transaction.fundingId) {
       throw new ValidationError(
         'Esta transacción pertenece a un movimiento efectivo↔inversión. Eliminá el registro en /fundings',
+      );
+    }
+
+    if (transaction.installmentId) {
+      throw new ValidationError(
+        'Esta transacción pertenece al pago de una cuota. Deshacé el pago en /credits',
       );
     }
 

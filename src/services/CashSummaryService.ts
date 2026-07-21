@@ -51,7 +51,7 @@ export class CashSummaryService {
     const isSingleAccountView = Boolean(query.cashAccountId);
 
     for (const tx of transactions) {
-      if (!isSingleAccountView && (tx.transferId || tx.fundingId)) {
+      if (!isSingleAccountView && (tx.transferId || tx.fundingId || tx.installmentId)) {
         continue;
       }
       if (tx.type === CashTransactionType.INCOME) {

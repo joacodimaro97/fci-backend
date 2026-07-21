@@ -82,6 +82,10 @@ export class PrismaTransactionRepository implements ITransactionRepository {
       where.fundingId = null;
     }
 
+    if (filters.excludeInstallments) {
+      where.installmentId = null;
+    }
+
     return where;
   }
 }

@@ -416,6 +416,7 @@ export class BudgetService {
       endDate,
       excludeTransfers: true,
       excludeFundings: true,
+      excludeInstallments: true,
     });
 
     return transactions.reduce((sum, tx) => sum + tx.amount, 0);

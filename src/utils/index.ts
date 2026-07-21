@@ -11,11 +11,29 @@ export async function comparePassword(password: string, hash: string): Promise<b
   return bcrypt.compare(password, hash);
 }
 
-export function toPublicUser<T extends { password: string }>(
-  user: T,
-): Omit<T, 'password'> {
-  const { password: _password, ...publicUser } = user;
-  return publicUser;
+export function toPublicUser(user: {
+  id: string;
+  name: string;
+  email: string;
+  telegramChatId: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}): {
+  id: string;
+  name: string;
+  email: string;
+  telegramLinked: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+} {
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    telegramLinked: user.telegramChatId != null,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+  };
 }
 
 /**
@@ -78,3 +96,41 @@ export function todayCalendarDate(): Date {
     Date.UTC(arNow.getUTCFullYear(), arNow.getUTCMonth(), arNow.getUTCDate(), 12, 0, 0, 0),
   );
 }
+
+/**
+ * Suma meses a una fecha calendario UTC (mediodía),
+ * clampando el día al último del mes destino (ej. 31 ene + 1 mes → 28/29 feb).
+ */
+export function addMonths(date: Date, months: number): Date {
+  const year = date.getUTCFullYear();
+  const month = date.getUTCMonth() + months;
+  const day = date.getUTCDate();
+  const firstOfMonth = new Date(Date.UTC(year, month, 1, 12, 0, 0, 0));
+  const lastDay = new Date(
+    Date.UTC(firstOfMonth.getUTCFullYear(), firstOfMonth.getUTCMonth() + 1, 0),
+  ).getUTCDate();
+  return new Date(
+    Date.UTC(
+      firstOfMonth.getUTCFullYear(),
+      firstOfMonth.getUTCMonth(),
+      Math.min(day, lastDay),
+      12,
+      0,
+      0,
+      0,
+    ),
+  );
+}
+
+/** Montos de cuotas iguales; el residuo de centavos va a la última. */
+export function splitEqualAmounts(total: number, count: number): number[] {
+  if (count < 1) {
+    throw new Error('La cantidad de cuotas debe ser al menos 1');
+  }
+  const base = Math.round((total / count) * 100) / 100;
+  const amounts = Array.from({ length: count }, () => base);
+  const sumExceptLast = base * (count - 1);
+  amounts[count - 1] = Math.round((total - sumExceptLast) * 100) / 100;
+  return amounts;
+}
+

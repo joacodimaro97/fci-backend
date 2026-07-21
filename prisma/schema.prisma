@@ -41,19 +41,37 @@ enum FundingType {
   INVESTMENT_TO_CASH
 }
 
+enum CreditDirection {
+  OWED_BY_ME
+  OWED_TO_ME
+}
+
+enum CreditStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum InstallmentStatus {
+  PENDING
+  PAID
+}
+
 model User {
-  id           String        @id @default(cuid())
-  name         String
-  email        String        @unique
-  password     String
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  accounts     Account[]
-  cashAccounts CashAccount[]
-  categories   Category[]
-  transfers    CashTransfer[]
-  fundings     AccountFunding[]
-  budgets      Budget[]
+  id              String        @id @default(cuid())
+  name            String
+  email           String        @unique
+  password        String
+  telegramChatId  String?       @unique
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  accounts        Account[]
+  cashAccounts    CashAccount[]
+  categories      Category[]
+  transfers       CashTransfer[]
+  fundings        AccountFunding[]
+  budgets         Budget[]
+  credits         Credit[]
 }
 
 model Account {
@@ -150,6 +168,8 @@ model CashAccount {
   transfersIn    CashTransfer[] @relation("TransferIn")
   fundings       AccountFunding[]
   budgets        Budget[]
+  creditsDefault Credit[]      @relation("CreditDefaultCashAccount")
+  installments   CreditInstallment[]
 
   @@index([userId])
 }
@@ -184,11 +204,13 @@ model Transaction {
   description   String?
   transferId    String?
   fundingId     String?
+  installmentId String?
   createdAt     DateTime            @default(now())
   cashAccount   CashAccount         @relation(fields: [cashAccountId], references: [id], onDelete: Cascade)
   category      Category            @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   transfer      CashTransfer?       @relation(fields: [transferId], references: [id], onDelete: Cascade)
   funding       AccountFunding?     @relation(fields: [fundingId], references: [id], onDelete: Cascade)
+  installment   CreditInstallment?  @relation(fields: [installmentId], references: [id], onDelete: Cascade)
 
   @@index([cashAccountId])
   @@index([categoryId])
@@ -196,6 +218,7 @@ model Transaction {
   @@index([type])
   @@index([transferId])
   @@index([fundingId])
+  @@index([installmentId])
 }
 
 model CashTransfer {
@@ -269,4 +292,52 @@ model BudgetCategory {
 
   @@id([budgetId, categoryId])
   @@index([categoryId])
+}
+
+model Credit {
+  id                   String              @id @default(cuid())
+  userId               String
+  name                 String
+  description          String?
+  counterparty         String?
+  direction            CreditDirection
+  currency             String              @default("ARS")
+  principal            Float
+  installmentCount     Int
+  installmentAmount    Float
+  startDate            DateTime
+  status               CreditStatus        @default(ACTIVE)
+  defaultCashAccountId String?
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  user                 User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  defaultCashAccount   CashAccount?        @relation("CreditDefaultCashAccount", fields: [defaultCashAccountId], references: [id], onDelete: SetNull)
+  installments         CreditInstallment[]
+
+  @@index([userId])
+  @@index([direction])
+  @@index([status])
+  @@index([defaultCashAccountId])
+}
+
+model CreditInstallment {
+  id            String            @id @default(cuid())
+  creditId      String
+  number        Int
+  dueDate       DateTime
+  amount        Float
+  status        InstallmentStatus @default(PENDING)
+  paidAt        DateTime?
+  cashAccountId String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  credit        Credit            @relation(fields: [creditId], references: [id], onDelete: Cascade)
+  cashAccount   CashAccount?      @relation(fields: [cashAccountId], references: [id], onDelete: SetNull)
+  transactions  Transaction[]
+
+  @@unique([creditId, number])
+  @@index([creditId])
+  @@index([dueDate])
+  @@index([status])
+  @@index([cashAccountId])
 }

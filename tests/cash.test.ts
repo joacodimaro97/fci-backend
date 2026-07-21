@@ -192,6 +192,7 @@ describe('CashSummaryService', () => {
         description: null,
         transferId: null,
         fundingId: null,
+        installmentId: null,
         createdAt: new Date(),
       },
       {
@@ -204,6 +205,7 @@ describe('CashSummaryService', () => {
         description: null,
         transferId: null,
         fundingId: null,
+        installmentId: null,
         createdAt: new Date(),
       },
       {
@@ -216,6 +218,7 @@ describe('CashSummaryService', () => {
         description: null,
         transferId: null,
         fundingId: null,
+        installmentId: null,
         createdAt: new Date(),
       },
     ];
@@ -349,6 +352,7 @@ describe('CashSummaryService', () => {
         description: null,
         transferId: 'transfer-1',
         fundingId: null,
+        installmentId: null,
         createdAt: new Date(),
       },
       {
@@ -361,6 +365,7 @@ describe('CashSummaryService', () => {
         description: null,
         transferId: 'transfer-1',
         fundingId: null,
+        installmentId: null,
         createdAt: new Date(),
       },
     ];
@@ -454,6 +459,7 @@ describe('CashSummaryService', () => {
         description: null,
         transferId: null,
         fundingId: 'funding-1',
+        installmentId: null,
         createdAt: new Date(),
       },
     ];
@@ -635,6 +641,7 @@ describe('BudgetService', () => {
         description: null,
         transferId: null,
         fundingId: null,
+        installmentId: null,
         createdAt: new Date(),
       },
       {
@@ -647,6 +654,7 @@ describe('BudgetService', () => {
         description: null,
         transferId: null,
         fundingId: null,
+        installmentId: null,
         createdAt: new Date(),
       },
     ];
@@ -688,6 +696,7 @@ describe('BudgetService', () => {
         description: null,
         transferId: null,
         fundingId: null,
+        installmentId: null,
         createdAt: new Date(),
       },
     ];
@@ -725,6 +734,7 @@ describe('BudgetService', () => {
         description: null,
         transferId: null,
         fundingId: null,
+        installmentId: null,
         createdAt: new Date(),
       },
       {
@@ -737,6 +747,7 @@ describe('BudgetService', () => {
         description: null,
         transferId: null,
         fundingId: null,
+        installmentId: null,
         createdAt: new Date(),
       },
     ];
@@ -809,6 +820,7 @@ describe('TransactionService.getAll', () => {
       description: null,
       transferId: null,
       fundingId: null,
+      installmentId: null,
       createdAt: new Date(),
     },
     {
@@ -821,6 +833,7 @@ describe('TransactionService.getAll', () => {
       description: null,
       transferId: null,
       fundingId: null,
+      installmentId: null,
       createdAt: new Date(),
     },
   ];
@@ -957,6 +970,7 @@ describe('TransactionService.getAll', () => {
         description: null,
         transferId: null,
         fundingId: null,
+        installmentId: null,
         createdAt: new Date(),
       },
       {
@@ -969,6 +983,7 @@ describe('TransactionService.getAll', () => {
         description: null,
         transferId: null,
         fundingId: null,
+        installmentId: null,
         createdAt: new Date(),
       },
       {
@@ -981,6 +996,7 @@ describe('TransactionService.getAll', () => {
         description: null,
         transferId: null,
         fundingId: null,
+        installmentId: null,
         createdAt: new Date(),
       },
     ];

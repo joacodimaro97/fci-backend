@@ -34,6 +34,7 @@ export async function transactionRoutes(fastify: FastifyInstance): Promise<void>
           endDate: { type: 'string' },
           excludeTransfers: { type: 'string', enum: ['true', 'false'] },
           excludeFundings: { type: 'string', enum: ['true', 'false'] },
+          excludeInstallments: { type: 'string', enum: ['true', 'false'] },
         },
       },
     },

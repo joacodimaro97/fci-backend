@@ -4,6 +4,9 @@ export interface IUserRepository {
   create(data: CreateUserData): Promise<UserEntity>;
   findById(id: string): Promise<UserEntity | null>;
   findByEmail(email: string): Promise<UserEntity | null>;
+  findByTelegramChatId(chatId: string): Promise<UserEntity | null>;
   findPublicById(id: string): Promise<UserPublic | null>;
   existsByEmail(email: string): Promise<boolean>;
+  linkTelegram(userId: string, chatId: string): Promise<UserEntity>;
+  unlinkTelegram(userId: string): Promise<UserEntity>;
 }

@@ -1,7 +1,7 @@
-import { ZodError, type ZodSchema } from 'zod';
+import { ZodError } from 'zod';
 import { ValidationError } from '../errors/AppError.js';
 
-export function validate<T>(schema: ZodSchema<T>, data: unknown): T {
+export function validate<T>(schema: { parse: (data: unknown) => T }, data: unknown): T {
   try {
     return schema.parse(data);
   } catch (error) {

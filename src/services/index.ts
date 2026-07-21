@@ -5,6 +5,7 @@ import {
   cashAccountRepository,
   cashTransferRepository,
   categoryRepository,
+  creditRepository,
   movementRepository,
   performanceRepository,
   simulationRepository,
@@ -16,6 +17,7 @@ import { AuthService } from './AuthService.js';
 import { CashAccountService } from './CashAccountService.js';
 import { CashSummaryService } from './CashSummaryService.js';
 import { CategoryService } from './CategoryService.js';
+import { CreditService } from './CreditService.js';
 import { MovementService } from './MovementService.js';
 import { PerformanceService } from './PerformanceService.js';
 import { SimulationService } from './SimulationService.js';
@@ -24,6 +26,7 @@ import { BudgetService } from './BudgetService.js';
 import { FundingService } from './FundingService.js';
 import { TransactionService } from './TransactionService.js';
 import { TransferService } from './TransferService.js';
+import { TelegramService } from './TelegramService.js';
 
 let signTokenFn: (payload: { sub: string; email: string }) => string = () => '';
 
@@ -75,3 +78,9 @@ export const budgetService = new BudgetService(
   transactionRepository,
   categoryRepository,
 );
+export const creditService = new CreditService(
+  creditRepository,
+  cashAccountRepository,
+  categoryRepository,
+);
+export const telegramService = new TelegramService(userRepository);
