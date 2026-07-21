@@ -22,6 +22,11 @@ function chatIdFromCtx(ctx: { chat?: { id: number } | undefined }): string | nul
 }
 
 export async function startTelegramBot(log: FastifyBaseLogger): Promise<void> {
+  if (!env.isProduction) {
+    log.info('Bot de Telegram deshabilitado en development (evita conflicto 409 con producción)');
+    return;
+  }
+
   if (!env.telegramToken) {
     log.warn('TOKEN_TELEGRAM no configurado: el bot de Telegram no se iniciará');
     return;
