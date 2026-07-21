@@ -214,6 +214,7 @@ export interface TransactionEntity {
   transferId: string | null;
   fundingId: string | null;
   installmentId: string | null;
+  relatedExpenseId: string | null;
   createdAt: Date;
 }
 
@@ -259,6 +260,7 @@ export interface CreateTransactionData {
   transferId?: string;
   fundingId?: string;
   installmentId?: string;
+  relatedExpenseId?: string | null;
 }
 
 export interface UpdateTransactionData {
@@ -268,6 +270,7 @@ export interface UpdateTransactionData {
   amount?: number;
   date?: Date;
   description?: string | null;
+  relatedExpenseId?: string | null;
 }
 
 export interface CashSummaryByCategory {
@@ -292,6 +295,8 @@ export interface CashSummaryResult {
   openingBalance: number;
   totalIncome: number;
   totalExpense: number;
+  totalExpenseNet: number;
+  totalReimbursed: number;
   balance: number;
   byCategory: CashSummaryByCategory[];
   byParentCategory: CashSummaryByParentCategory[];

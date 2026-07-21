@@ -1,11 +1,14 @@
 import { ConflictError, NotFoundError, ValidationError } from '../errors/AppError.js';
 import type { CategoryEntity, CategoryTreeNode } from '../models/index.js';
 import type { ICategoryRepository } from '../repositories/ICategoryRepository.js';
+import { CashTransactionType } from '../types/enums.js';
 import type {
   CategoryQueryInput,
   CreateCategoryInput,
   UpdateCategoryInput,
 } from '../validators/category.validator.js';
+
+const PROTECTED_REIMBURSEMENT_CATEGORY = 'Reintegros';
 
 export class CategoryService {
   constructor(private readonly categoryRepository: ICategoryRepository) {}
@@ -69,6 +72,7 @@ export class CategoryService {
     if (!category) {
       throw new NotFoundError('Categoría');
     }
+    this.assertNotProtectedSystemCategory(category);
 
     const nextParentId = input.parentId === undefined ? category.parentId : input.parentId;
     const nextType = input.type ?? category.type;
@@ -115,6 +119,7 @@ export class CategoryService {
     if (!category) {
       throw new NotFoundError('Categoría');
     }
+    this.assertNotProtectedSystemCategory(category);
 
     const usage = await this.categoryRepository.countTransactions(categoryId);
     if (usage > 0) {
@@ -149,5 +154,17 @@ export class CategoryService {
         .filter((c) => c.parentId === root.id)
         .sort((a, b) => a.name.localeCompare(b.name)),
     }));
+  }
+
+  private assertNotProtectedSystemCategory(category: CategoryEntity): void {
+    if (
+      category.parentId === null &&
+      category.type === CashTransactionType.INCOME &&
+      category.name === PROTECTED_REIMBURSEMENT_CATEGORY
+    ) {
+      throw new ConflictError(
+        'La categoría "Reintegros" es del sistema y no puede editarse ni eliminarse',
+      );
+    }
   }
 }

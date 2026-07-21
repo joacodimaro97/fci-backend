@@ -202,15 +202,18 @@ model Transaction {
   amount        Float
   date          DateTime
   description   String?
-  transferId    String?
-  fundingId     String?
-  installmentId String?
-  createdAt     DateTime            @default(now())
-  cashAccount   CashAccount         @relation(fields: [cashAccountId], references: [id], onDelete: Cascade)
-  category      Category            @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  transfer      CashTransfer?       @relation(fields: [transferId], references: [id], onDelete: Cascade)
-  funding       AccountFunding?     @relation(fields: [fundingId], references: [id], onDelete: Cascade)
-  installment   CreditInstallment?  @relation(fields: [installmentId], references: [id], onDelete: Cascade)
+  transferId       String?
+  fundingId        String?
+  installmentId    String?
+  relatedExpenseId String?
+  createdAt        DateTime            @default(now())
+  cashAccount      CashAccount         @relation(fields: [cashAccountId], references: [id], onDelete: Cascade)
+  category         Category            @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  transfer         CashTransfer?       @relation(fields: [transferId], references: [id], onDelete: Cascade)
+  funding          AccountFunding?     @relation(fields: [fundingId], references: [id], onDelete: Cascade)
+  installment      CreditInstallment?  @relation(fields: [installmentId], references: [id], onDelete: Cascade)
+  relatedExpense   Transaction?        @relation("TransactionReimbursements", fields: [relatedExpenseId], references: [id], onDelete: SetNull)
+  reimbursements   Transaction[]       @relation("TransactionReimbursements")
 
   @@index([cashAccountId])
   @@index([categoryId])
@@ -219,6 +222,7 @@ model Transaction {
   @@index([transferId])
   @@index([fundingId])
   @@index([installmentId])
+  @@index([relatedExpenseId])
 }
 
 model CashTransfer {

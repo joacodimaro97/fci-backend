@@ -408,7 +408,7 @@ export class BudgetService {
     startDate: Date,
     endDate: Date,
   ): Promise<number> {
-    const transactions = await this.transactionRepository.findByFilters({
+    const expenseTransactions = await this.transactionRepository.findByFilters({
       cashAccountId: cashAccountId ?? undefined,
       categoryIds: categoryIds.length > 0 ? categoryIds : undefined,
       type: CashTransactionType.EXPENSE,
@@ -419,7 +419,24 @@ export class BudgetService {
       excludeInstallments: true,
     });
 
-    return transactions.reduce((sum, tx) => sum + tx.amount, 0);
+    if (expenseTransactions.length === 0) {
+      return 0;
+    }
+
+    const reimbursements = await this.transactionRepository.findByFilters({
+      cashAccountId: cashAccountId ?? undefined,
+      relatedExpenseIds: expenseTransactions.map((tx) => tx.id),
+      type: CashTransactionType.INCOME,
+      startDate,
+      endDate,
+      excludeTransfers: true,
+      excludeFundings: true,
+    });
+
+    const totalExpense = expenseTransactions.reduce((sum, tx) => sum + tx.amount, 0);
+    const totalReimbursed = reimbursements.reduce((sum, tx) => sum + tx.amount, 0);
+
+    return Math.max(totalExpense - totalReimbursed, 0);
   }
 }
 
