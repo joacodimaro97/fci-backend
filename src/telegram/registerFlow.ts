@@ -8,7 +8,7 @@ import {
   telegramService,
   transactionService,
 } from '../services/index.js';
-import { CashTransactionType } from '../types/enums.js';
+import { CashTransactionType, ExpenseIntent } from '../types/enums.js';
 import { todayCalendarDate } from '../utils/index.js';
 import {
   clearSession,
@@ -19,6 +19,14 @@ import {
 } from './session.js';
 
 const CANCEL_ROW = [Markup.button.callback('❌ Cancelar', 'reg:cancel')];
+
+const INTENT_OPTIONS: { value: ExpenseIntent; label: string }[] = [
+  { value: ExpenseIntent.NECESIDAD, label: '🟢 Necesidad' },
+  { value: ExpenseIntent.CUIDADO, label: '🔵 Cuidado' },
+  { value: ExpenseIntent.GUSTO, label: '🟣 Gusto' },
+  { value: ExpenseIntent.IMPULSO, label: '🟠 Impulso' },
+  { value: ExpenseIntent.REVISAR, label: '⚪ Revisar' },
+];
 
 function typeLabel(type: CashTransactionType): string {
   return type === CashTransactionType.EXPENSE ? 'Gasto' : 'Ingreso';
@@ -119,9 +127,8 @@ async function showAccounts(ctx: Context, session: RegisterSession): Promise<voi
     const account = accounts[0]!;
     session.cashAccountId = account.id;
     session.accountName = account.name;
-    session.step = 'amount';
     setSession(chatId, session);
-    await askAmount(ctx, session);
+    await afterAccountSelected(ctx, session);
     return;
   }
 
@@ -138,17 +145,49 @@ async function showAccounts(ctx: Context, session: RegisterSession): Promise<voi
   );
 }
 
-async function askAmount(ctx: Context, session: RegisterSession): Promise<void> {
+async function afterAccountSelected(ctx: Context, session: RegisterSession): Promise<void> {
+  if (session.type === CashTransactionType.EXPENSE) {
+    await showIntentOptions(ctx, session);
+    return;
+  }
+
+  session.step = 'amount';
+  setSession(String(ctx.chat!.id), session);
+  await askAmount(ctx, session);
+}
+
+async function showIntentOptions(ctx: Context, session: RegisterSession): Promise<void> {
+  session.step = 'intent';
+  setSession(String(ctx.chat!.id), session);
+
+  const buttons = INTENT_OPTIONS.map((option) =>
+    Markup.button.callback(option.label, `reg:intent:${option.value}`),
+  );
+
   await ctx.reply(
     [
-      `Monto del ${typeLabel(session.type!).toLowerCase()}:`,
+      '¿Cómo etiquetás este gasto?',
       `📁 ${session.categoryName}`,
       `🏦 ${session.accountName}`,
-      '',
-      'Escribí solo el número (ej: 1500 o 1500.50)',
     ].join('\n'),
-    Markup.inlineKeyboard([CANCEL_ROW]),
+    Markup.inlineKeyboard([...chunkButtons(buttons), CANCEL_ROW]),
   );
+}
+
+async function askAmount(ctx: Context, session: RegisterSession): Promise<void> {
+  const lines = [
+    `Monto del ${typeLabel(session.type!).toLowerCase()}:`,
+    `📁 ${session.categoryName}`,
+    `🏦 ${session.accountName}`,
+  ];
+
+  if (session.intentLabel) {
+    lines.push(session.intentLabel);
+  }
+
+  lines.push('', 'Escribí solo el número (ej: 1500 o 1500.50)');
+
+  await ctx.reply(lines.join('\n'), Markup.inlineKeyboard([CANCEL_ROW]));
 }
 
 export async function handleRegisterCallback(ctx: Context): Promise<void> {
@@ -288,6 +327,33 @@ export async function handleRegisterCallback(ctx: Context): Promise<void> {
 
     session.cashAccountId = account.id;
     session.accountName = account.name;
+    setSession(chatId, session);
+    await afterAccountSelected(ctx, session);
+    return;
+  }
+
+  if (data.startsWith('reg:intent:')) {
+    const intent = data.replace('reg:intent:', '') as ExpenseIntent;
+    const session = getSession(chatId);
+    if (
+      !session?.type ||
+      session.type !== CashTransactionType.EXPENSE ||
+      !session.categoryId ||
+      !session.cashAccountId ||
+      session.step !== 'intent'
+    ) {
+      await ctx.reply('Empezá de nuevo:', mainMenuKeyboard());
+      return;
+    }
+
+    const option = INTENT_OPTIONS.find((item) => item.value === intent);
+    if (!option) {
+      await ctx.reply('Etiqueta inválida.');
+      return;
+    }
+
+    session.intent = option.value;
+    session.intentLabel = option.label;
     session.step = 'amount';
     setSession(chatId, session);
     await askAmount(ctx, session);
@@ -325,17 +391,23 @@ export async function handleAmountInput(ctx: Context, text: string): Promise<boo
       cashAccountId: session.cashAccountId,
       amount,
       date: dateOnly(todayCalendarDate()),
+      intent: session.intent,
     });
 
     clearSession(chatId);
 
+    const lines = [
+      `✅ ${typeLabel(session.type)} registrado`,
+      `${formatMoney(amount)}`,
+      `📁 ${session.categoryName}`,
+      `🏦 ${session.accountName}`,
+    ];
+    if (session.intentLabel) {
+      lines.push(session.intentLabel);
+    }
+
     await ctx.reply(
-      [
-        `✅ ${typeLabel(session.type)} registrado`,
-        `${formatMoney(amount)}`,
-        `📁 ${session.categoryName}`,
-        `🏦 ${session.accountName}`,
-      ].join('\n'),
+      lines.join('\n'),
       Markup.inlineKeyboard([[Markup.button.callback('➕ Registrar otro', 'reg:again')]]),
     );
   } catch (error) {

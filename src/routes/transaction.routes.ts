@@ -30,6 +30,10 @@ export async function transactionRoutes(fastify: FastifyInstance): Promise<void>
             ],
           },
           type: { type: 'string', enum: ['INCOME', 'EXPENSE'] },
+          intent: {
+            type: 'string',
+            enum: ['NECESIDAD', 'CUIDADO', 'GUSTO', 'IMPULSO', 'REVISAR'],
+          },
           startDate: { type: 'string' },
           endDate: { type: 'string' },
           excludeTransfers: { type: 'string', enum: ['true', 'false'] },
@@ -44,7 +48,8 @@ export async function transactionRoutes(fastify: FastifyInstance): Promise<void>
   fastify.post('/', {
     schema: {
       tags: ['Cash Transactions'],
-      description: 'Crear transacción',
+      description:
+        'Crear transacción. En gastos, intent es opcional (default REVISAR). En ingresos se ignora.',
       security: [{ bearerAuth: [] }],
     },
     handler: transactionController.create,

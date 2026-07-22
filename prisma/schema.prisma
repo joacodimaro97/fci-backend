@@ -36,6 +36,14 @@ enum CashTransactionType {
   EXPENSE
 }
 
+enum ExpenseIntent {
+  NECESIDAD
+  CUIDADO
+  GUSTO
+  IMPULSO
+  REVISAR
+}
+
 enum FundingType {
   CASH_TO_INVESTMENT
   INVESTMENT_TO_CASH
@@ -198,10 +206,11 @@ model Transaction {
   id            String              @id @default(cuid())
   cashAccountId String
   categoryId    String
-  type          CashTransactionType
-  amount        Float
-  date          DateTime
-  description   String?
+  type             CashTransactionType
+  amount           Float
+  date             DateTime
+  description      String?
+  intent           ExpenseIntent?
   transferId       String?
   fundingId        String?
   installmentId    String?
@@ -219,6 +228,7 @@ model Transaction {
   @@index([categoryId])
   @@index([date])
   @@index([type])
+  @@index([intent])
   @@index([transferId])
   @@index([fundingId])
   @@index([installmentId])

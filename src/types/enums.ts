@@ -3,6 +3,7 @@ export {
   InvestmentType,
   SimulationType,
   CashTransactionType,
+  ExpenseIntent,
   FundingType,
   CreditDirection,
   CreditStatus,

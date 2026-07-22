@@ -10,7 +10,7 @@ import type {
 import type { ICashAccountRepository } from '../repositories/ICashAccountRepository.js';
 import type { ICategoryRepository } from '../repositories/ICategoryRepository.js';
 import type { ITransactionRepository } from '../repositories/ITransactionRepository.js';
-import { CashTransactionType } from '../types/enums.js';
+import { CashTransactionType, ExpenseIntent } from '../types/enums.js';
 import { endOfDay, parseDate, startOfDay } from '../utils/index.js';
 import type {
   CreateTransactionInput,
@@ -36,6 +36,15 @@ const MONTH_LABELS = [
 
 const REIMBURSEMENT_CATEGORY = 'Reintegros';
 
+function resolveIntentForType(
+  type: CashTransactionType,
+  intent: ExpenseIntent | null | undefined,
+): ExpenseIntent | null {
+  if (type !== CashTransactionType.EXPENSE) {
+    return null;
+  }
+  return intent ?? ExpenseIntent.REVISAR;
+}
 export class TransactionService {
   constructor(
     private readonly transactionRepository: ITransactionRepository,
@@ -51,6 +60,7 @@ export class TransactionService {
       cashAccountIds,
       categoryIds,
       type: query.type,
+      intent: query.intent,
       startDate: query.startDate ? startOfDay(parseDate(query.startDate)) : undefined,
       endDate: query.endDate ? endOfDay(parseDate(query.endDate)) : undefined,
       excludeTransfers: query.excludeTransfers,
@@ -75,6 +85,10 @@ export class TransactionService {
     );
     await this.ensureCategoryMatchesType(userId, categoryId, input.type);
 
+    if (input.type !== CashTransactionType.EXPENSE && input.intent) {
+      throw new ValidationError('La etiqueta de intención solo aplica a gastos');
+    }
+
     return this.transactionRepository.create({
       cashAccountId: input.cashAccountId,
       categoryId,
@@ -82,6 +96,7 @@ export class TransactionService {
       amount: input.amount,
       date: parseDate(input.date),
       description: input.description,
+      intent: resolveIntentForType(input.type, input.intent),
       relatedExpenseId: input.relatedExpenseId,
     });
   }
@@ -144,6 +159,15 @@ export class TransactionService {
     );
     await this.ensureExpenseCanCoverReimbursements(transaction.id, nextType, nextAmount);
 
+    const nextIntent =
+      input.intent !== undefined
+        ? resolveIntentForType(nextType, input.intent)
+        : resolveIntentForType(nextType, transaction.intent);
+
+    if (nextType !== CashTransactionType.EXPENSE && input.intent) {
+      throw new ValidationError('La etiqueta de intención solo aplica a gastos');
+    }
+
     return this.transactionRepository.update(transactionId, {
       cashAccountId: nextCashAccountId,
       categoryId: nextCategoryId,
@@ -151,6 +175,7 @@ export class TransactionService {
       amount: input.amount,
       date: input.date ? parseDate(input.date) : undefined,
       description: input.description,
+      intent: nextIntent,
       relatedExpenseId: nextRelatedExpenseId,
     });
   }

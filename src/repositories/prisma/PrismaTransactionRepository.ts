@@ -70,6 +70,10 @@ export class PrismaTransactionRepository implements ITransactionRepository {
       where.type = filters.type;
     }
 
+    if (filters.intent) {
+      where.intent = filters.intent;
+    }
+
     if (filters.startDate || filters.endDate) {
       where.date = {};
       if (filters.startDate) {

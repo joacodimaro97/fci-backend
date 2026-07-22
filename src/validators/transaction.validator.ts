@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { CashTransactionType } from '../types/enums.js';
+import { CashTransactionType, ExpenseIntent } from '../types/enums.js';
 
 const dateSchema = z
   .string()
@@ -13,6 +13,7 @@ export const createTransactionSchema = z.object({
   amount: z.number().positive('El monto debe ser positivo'),
   date: dateSchema,
   description: z.string().max(500).optional(),
+  intent: z.nativeEnum(ExpenseIntent).optional(),
   relatedExpenseId: z.string().min(1).optional(),
 });
 
@@ -23,6 +24,7 @@ export const updateTransactionSchema = z.object({
   amount: z.number().positive().optional(),
   date: dateSchema.optional(),
   description: z.string().max(500).optional().nullable(),
+  intent: z.nativeEnum(ExpenseIntent).optional().nullable(),
   relatedExpenseId: z.string().min(1).optional().nullable(),
 });
 
@@ -40,6 +42,7 @@ export const transactionQuerySchema = z.object({
     }, z.array(z.string().min(1)).optional())
     .transform((ids) => (ids?.length ? [...new Set(ids)] : undefined)),
   type: z.nativeEnum(CashTransactionType).optional(),
+  intent: z.nativeEnum(ExpenseIntent).optional(),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
   excludeTransfers: z

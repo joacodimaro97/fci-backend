@@ -2,6 +2,7 @@ import type {
   CashTransactionType,
   CreditDirection,
   CreditStatus,
+  ExpenseIntent,
   FundingType,
   InstallmentStatus,
   InvestmentType,
@@ -211,6 +212,7 @@ export interface TransactionEntity {
   amount: number;
   date: Date;
   description: string | null;
+  intent: ExpenseIntent | null;
   transferId: string | null;
   fundingId: string | null;
   installmentId: string | null;
@@ -257,6 +259,7 @@ export interface CreateTransactionData {
   amount: number;
   date: Date;
   description?: string;
+  intent?: ExpenseIntent | null;
   transferId?: string;
   fundingId?: string;
   installmentId?: string;
@@ -270,6 +273,7 @@ export interface UpdateTransactionData {
   amount?: number;
   date?: Date;
   description?: string | null;
+  intent?: ExpenseIntent | null;
   relatedExpenseId?: string | null;
 }
 

@@ -1,4 +1,4 @@
-import type { CashTransactionType } from '../types/enums.js';
+import type { CashTransactionType, ExpenseIntent } from '../types/enums.js';
 import type {
   CreateTransactionData,
   TransactionEntity,
@@ -13,6 +13,7 @@ export interface TransactionFilters {
   relatedExpenseId?: string;
   relatedExpenseIds?: string[];
   type?: CashTransactionType;
+  intent?: ExpenseIntent;
   startDate?: Date;
   endDate?: Date;
   excludeTransfers?: boolean;

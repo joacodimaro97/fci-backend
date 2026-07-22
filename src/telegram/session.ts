@@ -1,10 +1,11 @@
-import type { CashTransactionType } from '../types/enums.js';
+import type { CashTransactionType, ExpenseIntent } from '../types/enums.js';
 
 export type RegisterStep =
   | 'type'
   | 'category'
   | 'subcategory'
   | 'account'
+  | 'intent'
   | 'amount';
 
 export interface RegisterSession {
@@ -15,6 +16,8 @@ export interface RegisterSession {
   categoryName?: string;
   cashAccountId?: string;
   accountName?: string;
+  intent?: ExpenseIntent;
+  intentLabel?: string;
   updatedAt: number;
 }
 
