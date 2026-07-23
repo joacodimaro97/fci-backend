@@ -13,6 +13,10 @@ import type {
 const TRANSFER_OUT_CATEGORY = 'Transferencia saliente';
 const TRANSFER_IN_CATEGORY = 'Transferencia entrante';
 
+function roundMoney(value: number): number {
+  return Math.round(value * 1e8) / 1e8;
+}
+
 export class TransferService {
   constructor(
     private readonly transferRepository: ICashTransferRepository,
@@ -60,11 +64,13 @@ export class TransferService {
       throw new NotFoundError('Cuenta de efectivo destino');
     }
 
-    if (fromAccount.currency !== toAccount.currency) {
-      throw new ValidationError(
-        `Las cuentas deben tener la misma moneda (${fromAccount.currency} vs ${toAccount.currency})`,
-      );
-    }
+    const { toAmount, exchangeRate } = this.resolveFxAmounts(
+      fromAccount.currency,
+      toAccount.currency,
+      input.amount,
+      input.toAmount,
+      input.exchangeRate,
+    );
 
     const { outCategoryId, inCategoryId } = await this.ensureTransferCategories(userId);
 
@@ -73,6 +79,8 @@ export class TransferService {
       fromCashAccountId: input.fromCashAccountId,
       toCashAccountId: input.toCashAccountId,
       amount: input.amount,
+      toAmount,
+      exchangeRate,
       date: parseDate(input.date),
       description: input.description,
       outCategoryId,
@@ -86,6 +94,53 @@ export class TransferService {
       throw new NotFoundError('Transferencia');
     }
     await this.transferRepository.delete(transferId);
+  }
+
+  private resolveFxAmounts(
+    fromCurrency: string,
+    toCurrency: string,
+    amount: number,
+    toAmountInput?: number,
+    exchangeRateInput?: number,
+  ): { toAmount: number; exchangeRate: number | null } {
+    const sameCurrency = fromCurrency === toCurrency;
+
+    if (sameCurrency) {
+      if (toAmountInput !== undefined && toAmountInput !== amount) {
+        throw new ValidationError(
+          'En transferencias de la misma moneda toAmount debe coincidir con amount',
+        );
+      }
+      if (exchangeRateInput !== undefined && exchangeRateInput !== 1) {
+        throw new ValidationError(
+          'En transferencias de la misma moneda no corresponde enviar exchangeRate',
+        );
+      }
+      return { toAmount: amount, exchangeRate: null };
+    }
+
+    if (toAmountInput === undefined && exchangeRateInput === undefined) {
+      throw new ValidationError(
+        'Transferencia multi-moneda: enviá exchangeRate o toAmount',
+      );
+    }
+
+    if (toAmountInput !== undefined && exchangeRateInput !== undefined) {
+      throw new ValidationError('Enviá exchangeRate o toAmount, no ambos');
+    }
+
+    if (exchangeRateInput !== undefined) {
+      return {
+        toAmount: roundMoney(amount * exchangeRateInput),
+        exchangeRate: exchangeRateInput,
+      };
+    }
+
+    const toAmount = toAmountInput!;
+    return {
+      toAmount,
+      exchangeRate: roundMoney(toAmount / amount),
+    };
   }
 
   private async ensureTransferCategories(

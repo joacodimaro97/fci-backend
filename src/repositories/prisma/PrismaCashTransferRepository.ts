@@ -22,6 +22,8 @@ export class PrismaCashTransferRepository implements ICashTransferRepository {
           fromCashAccountId: data.fromCashAccountId,
           toCashAccountId: data.toCashAccountId,
           amount: data.amount,
+          toAmount: data.toAmount,
+          exchangeRate: data.exchangeRate ?? null,
           date: data.date,
           description: data.description,
         },
@@ -50,7 +52,7 @@ export class PrismaCashTransferRepository implements ICashTransferRepository {
           cashAccountId: data.toCashAccountId,
           categoryId: data.inCategoryId,
           type: CashTransactionType.INCOME,
-          amount: data.amount,
+          amount: data.toAmount,
           date: data.date,
           description,
           transferId: transfer.id,
@@ -143,6 +145,8 @@ export class PrismaCashTransferRepository implements ICashTransferRepository {
       fromCashAccountId: string;
       toCashAccountId: string;
       amount: number;
+      toAmount: number;
+      exchangeRate: number | null;
       date: Date;
       description: string | null;
       createdAt: Date;
@@ -158,6 +162,8 @@ export class PrismaCashTransferRepository implements ICashTransferRepository {
       fromCashAccountId: transfer.fromCashAccountId,
       toCashAccountId: transfer.toCashAccountId,
       amount: transfer.amount,
+      toAmount: transfer.toAmount,
+      exchangeRate: transfer.exchangeRate,
       date: transfer.date,
       description: transfer.description,
       createdAt: transfer.createdAt,

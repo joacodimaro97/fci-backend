@@ -21,7 +21,7 @@ export class PrismaTransactionRepository implements ITransactionRepository {
     const where = this.buildWhere(filters);
     return this.prisma.transaction.findMany({
       where,
-      orderBy: { date: 'desc' },
+      orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
     });
   }
 

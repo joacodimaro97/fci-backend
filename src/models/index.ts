@@ -306,6 +306,23 @@ export interface CashSummaryResult {
   byParentCategory: CashSummaryByParentCategory[];
 }
 
+export interface IntentReportBucket {
+  intent: ExpenseIntent | null;
+  total: number;
+  totalGross: number;
+  count: number;
+  percentage: number;
+}
+
+export interface IntentReportResult {
+  startDate: string | null;
+  endDate: string | null;
+  totalExpense: number;
+  totalExpenseNet: number;
+  totalReimbursed: number;
+  byIntent: IntentReportBucket[];
+}
+
 export interface TransactionWeekStats {
   weekStart: string;
   weekEnd: string;
@@ -355,6 +372,8 @@ export interface CashTransferEntity {
   fromCashAccountId: string;
   toCashAccountId: string;
   amount: number;
+  toAmount: number;
+  exchangeRate: number | null;
   date: Date;
   description: string | null;
   createdAt: Date;
@@ -378,6 +397,8 @@ export interface CreateCashTransferData {
   fromCashAccountId: string;
   toCashAccountId: string;
   amount: number;
+  toAmount: number;
+  exchangeRate?: number | null;
   date: Date;
   description?: string;
   outCategoryId: string;

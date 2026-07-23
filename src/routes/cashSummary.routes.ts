@@ -21,4 +21,25 @@ export async function cashSummaryRoutes(fastify: FastifyInstance): Promise<void>
     },
     handler: cashSummaryController.getSummary,
   });
+
+  fastify.get('/intents', {
+    schema: {
+      tags: ['Cash Summary'],
+      description:
+        'Reporte de gastos por intención (NECESIDAD, GUSTO, IMPULSO, CONVENIENCIA). ' +
+        'Filtros: year/month o startDate+endDate (YYYY-MM-DD). Totales netos descuentan reintegros.',
+      security: [{ bearerAuth: [] }],
+      querystring: {
+        type: 'object',
+        properties: {
+          cashAccountId: { type: 'string' },
+          year: { type: 'integer' },
+          month: { type: 'integer' },
+          startDate: { type: 'string' },
+          endDate: { type: 'string' },
+        },
+      },
+    },
+    handler: cashSummaryController.getIntentReport,
+  });
 }

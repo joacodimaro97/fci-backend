@@ -43,7 +43,7 @@ function resolveIntentForType(
   if (type !== CashTransactionType.EXPENSE) {
     return null;
   }
-  return intent ?? ExpenseIntent.REVISAR;
+  return intent ?? ExpenseIntent.CONVENIENCIA;
 }
 export class TransactionService {
   constructor(

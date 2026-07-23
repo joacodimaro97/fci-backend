@@ -25,7 +25,10 @@ export async function transferRoutes(fastify: FastifyInstance): Promise<void> {
   fastify.post('/', {
     schema: {
       tags: ['Cash Transfers'],
-      description: 'Crear transferencia entre cuentas (genera egreso + ingreso vinculados)',
+      description:
+        'Crear transferencia entre cuentas (genera egreso + ingreso vinculados). ' +
+        'Misma moneda: solo amount. Multi-moneda: amount + exchangeRate (destino por 1 origen) ' +
+        'o amount + toAmount.',
       security: [{ bearerAuth: [] }],
     },
     handler: transferController.create,

@@ -22,10 +22,9 @@ const CANCEL_ROW = [Markup.button.callback('❌ Cancelar', 'reg:cancel')];
 
 const INTENT_OPTIONS: { value: ExpenseIntent; label: string }[] = [
   { value: ExpenseIntent.NECESIDAD, label: '🟢 Necesidad' },
-  { value: ExpenseIntent.CUIDADO, label: '🔵 Cuidado' },
   { value: ExpenseIntent.GUSTO, label: '🟣 Gusto' },
   { value: ExpenseIntent.IMPULSO, label: '🟠 Impulso' },
-  { value: ExpenseIntent.REVISAR, label: '⚪ Revisar' },
+  { value: ExpenseIntent.CONVENIENCIA, label: '🟡 Conveniencia' },
 ];
 
 function typeLabel(type: CashTransactionType): string {

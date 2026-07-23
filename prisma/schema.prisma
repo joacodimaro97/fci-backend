@@ -38,10 +38,9 @@ enum CashTransactionType {
 
 enum ExpenseIntent {
   NECESIDAD
-  CUIDADO
   GUSTO
   IMPULSO
-  REVISAR
+  CONVENIENCIA
 }
 
 enum FundingType {
@@ -241,6 +240,8 @@ model CashTransfer {
   fromCashAccountId String
   toCashAccountId   String
   amount            Float
+  toAmount          Float
+  exchangeRate      Float?
   date              DateTime
   description       String?
   createdAt         DateTime    @default(now())
